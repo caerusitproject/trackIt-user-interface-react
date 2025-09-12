@@ -55,7 +55,7 @@ function AppLayout() {
 
         {/* Main Content */}
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Suspense fallback={<LinearProgress />}>
+          <Suspense fallback={<LinearProgress sx={{mt:1.5}}/>}>
             <GlobalLoader />
             <SuccessFailureSnackbar />
 

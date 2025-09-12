@@ -36,44 +36,100 @@ export default function SideNavbar() {
 
         {/* Sidebar Content */}
         <SidebarContent>
+         
           <Menu
           active={location.pathname === "/home" }
           > 
-             <MenuItem
-              icon={<HomeFilledIcon />}
-              active={location.pathname === "/home"}
-              // component={<NavLink to="/request" />}
-            >
-               <NavLink to="/home" />
-              Home
-            </MenuItem>
-            <MenuItem
-              icon={<ConfirmationNumberIcon />}
-              active={location.pathname === "/request"}
-              // component={<NavLink to="/request" />}
-            >
-               <NavLink to="/request" />
-              Request
-            </MenuItem>
+           {collapsed && Boolean(collapsed) == true ?
 
-            <MenuItem
-              icon={<EmojiObjectsIcon />}
-              active={location.pathname === "/solution"}
-              // component={<NavLink to="/solution" />}
-            >
-              <NavLink to="/solution" />
-              Solution
-            </MenuItem>
 
-            <MenuItem
-              icon={<AttachMoneyIcon />}
-              active={location.pathname === "/asset"}
-              // component={<NavLink to="/asset" />}
-            >
-              <NavLink to="/asset" />
-              Asset
-            </MenuItem>
-
+               <Tooltip  placement="right" title="Home" arrow> 
+                  <MenuItem
+                    icon={<HomeFilledIcon />}
+                    active={location.pathname === "/home"}
+                    // component={<NavLink to="/request" />}
+                  >
+                    <NavLink to="/home" />
+                    Home
+                  </MenuItem>
+                </Tooltip>
+               
+                :
+                <MenuItem
+                  icon={<HomeFilledIcon />}
+                  active={location.pathname === "/home"}
+                  // component={<NavLink to="/request" />}
+                >
+                  <NavLink to="/home" />
+                  Home
+                </MenuItem>
+             }
+             {collapsed && Boolean(collapsed) == true ?
+                <Tooltip  placement="right" title="Request" arrow>
+                    <MenuItem
+                      icon={<ConfirmationNumberIcon />}
+                      active={location.pathname === "/request"}
+                      // component={<NavLink to="/request" />}
+                    >
+                      <NavLink to="/request" />
+                      Request
+                    </MenuItem>
+                </Tooltip>
+              :
+                  <MenuItem
+                    icon={<ConfirmationNumberIcon />}
+                    active={location.pathname === "/request"}
+                    // component={<NavLink to="/request" />}
+                  >
+                    <NavLink to="/request" />
+                    Request
+                  </MenuItem>
+              }
+               {collapsed && Boolean(collapsed) == true ?
+                <Tooltip  placement="right" title="Solution" arrow>
+                  <MenuItem
+                      icon={<EmojiObjectsIcon />}
+                      active={location.pathname === "/solution"}
+                      // component={<NavLink to="/solution" />}
+                    >
+                      <NavLink to="/solution" />
+                      Solution
+                    </MenuItem>
+                </Tooltip>
+         
+              :
+               <MenuItem
+                  icon={<EmojiObjectsIcon />}
+                  active={location.pathname === "/solution"}
+                  // component={<NavLink to="/solution" />}
+                >
+                  <NavLink to="/solution" />
+                  Solution
+                </MenuItem>
+               }
+              {collapsed && Boolean(collapsed) == true ?
+                <Tooltip  placement="right" title="Asset" arrow>
+                  <MenuItem
+                    icon={<AttachMoneyIcon />}
+                    active={location.pathname === "/asset"}
+                    // component={<NavLink to="/asset" />}
+                  >
+                    <NavLink to="/asset" />
+                    Asset
+                  </MenuItem>
+                  </Tooltip>
+                    :
+                    <MenuItem
+                        icon={<AttachMoneyIcon />}
+                        active={location.pathname === "/asset"}
+                        // component={<NavLink to="/asset" />}
+                      >
+                    <NavLink to="/asset" />
+                      Asset
+                    </MenuItem>
+                   }
+        {collapsed && Boolean(collapsed) == true ?
+          <Tooltip  placement="right" title="Report" arrow>
             <MenuItem
               icon={<FlagIcon />}
               active={location.pathname === "/report"}
@@ -82,6 +138,17 @@ export default function SideNavbar() {
               <NavLink to="/report" />
               Report
             </MenuItem>
+            </Tooltip>
+          :
+             <MenuItem
+              icon={<FlagIcon />}
+              active={location.pathname === "/report"}
+              // component={<NavLink to="/report" />}
+            >
+              <NavLink to="/report" />
+              Report
+            </MenuItem>
+          }
           </Menu>
           
         </SidebarContent>

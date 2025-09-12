@@ -20,6 +20,7 @@ import TicketResolution from "../Resolution/Resolution";
 import TimeAnalysisWrapper from "../TimeAnalysis/TimeAnalysisWrapper";
 import History from "../History/History";
 import TicketCustomFormatter from "../TicketCustomFormatter"
+import MilestoneFormRenderer from "../MileStone/MilestoneFormRenderer";
 
 export default function TicketLeft() {
   const [tab, setTab] = useState(0);
@@ -89,9 +90,10 @@ export default function TicketLeft() {
       {tab === 2 &&
        // MileStone part to be rendered here 
         <>
-          <div>
+        <MilestoneFormRenderer/>
+          {/* <div>
             MileStone component will be rendered here.
-          </div>
+          </div> */}
         </>
       }
 
