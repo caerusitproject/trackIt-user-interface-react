@@ -47,8 +47,25 @@ export default function DynamicFormBuilder() {
 
   const [groupedCountFields, setGroupedCountFields] = useState(0);
   const [grouping, setGrouping] = useState({
-    groupFields:null,ungroupFields:null
+    groupFields:[],ungroupFields:[]
   })
+
+  React.useEffect(() => {
+  const headers = fields.filter((field) => field.fieldtype === "header");
+
+  const groupedFields = headers.map((header) => ({
+    header,
+    fields: fields.filter(
+      (field) => field.headerId === header.id && field.fieldtype !== "header"
+    ),
+  }));
+
+  const ungroupedFields = fields.filter(
+    (field) => !field.headerId && field.fieldtype !== "header"
+  );
+
+  setGrouping({...grouping,groupFields: groupedFields,ungroupFields: ungroupedFields });
+}, [fields]);
 
 
   const handleAddFieldClick = (type, headerId = null,groupedStatus) => {
@@ -57,9 +74,6 @@ export default function DynamicFormBuilder() {
     setDropdownOptions("");
     setVisibilityType("");
     setPendingHeaderId(headerId);
-    if(groupedStatus && groupedStatus.toLowerCase() == 'grouped'){
-      setGroupedCountFields((prev)=> prev + 1)
-    }
   };
 
   const handleConfirmAdd = () => {
@@ -67,7 +81,7 @@ export default function DynamicFormBuilder() {
 
     const newField = {
       id: Date.now(),
-      type: pendingType,
+      fieldtype: pendingType,
       label: fieldLabel,
       visibility: visibilityType,
       headerId: pendingType === "header" ? null : pendingHeaderId,
@@ -101,7 +115,7 @@ export default function DynamicFormBuilder() {
 
   // Check if header has any children left
   const hasChildren = updatedFields.some(
-    (f) => f.headerId === headerId && f.type !== "header"
+    (f) => f.headerId === headerId && f.fieldtype !== "header"
   );
 
   let finalFields = [...updatedFields];
@@ -115,16 +129,26 @@ export default function DynamicFormBuilder() {
 
 
   const handleSubmit = () => {
-  const headers = fields.filter((field) => field.type === "header");
+  let dumpArr = []
+  const headers = fields.filter((field) => field.fieldtype === "header");
   const groupedFields = headers.map((header) => ({
-    headerId: header.id,
+    templateId: header.id,
+    type: 'component' ,
     headerLabel: header.label,
     fields: fields.filter((field) => field.headerId === header.id && field.type !== "header"),
   }));
 
    const ungroupedFields = fields
-      .filter((field) => field.headerId == null && field.type !== "header");
-
+    .filter((field) => field.headerId == null && field.fieldtype !== "header")
+    .map((item)=>({
+      ...item
+    }))
+    dumpArr.push({
+      type:'element',
+      fields:ungroupedFields,
+      // ...groupedFields[0]
+    })
+    let dumpArr1=[...dumpArr,...groupedFields]
   // Save each grouped section as a template
   // setSavedTemplates((prev) => [
   //   ...prev,
@@ -136,17 +160,18 @@ export default function DynamicFormBuilder() {
   //   })),
   // ]);
 
-  // console.log("Saved templates:", savedTemplates);
+  console.log("Saved templates:",
+dumpArr1);
 
   // alert("Templates saved!");
 };
 
 const handleSaveTemplate = (headerId) => {
-  const header = fields.find((f) => f.id === headerId && f.type === "header");
+  const header = fields.find((f) => f.id === headerId && f.fieldtype === "header");
   if (!header) return;
 
   const groupFields = fields.filter(
-    (f) => f.headerId === headerId && f.type !== "header"
+    (f) => f.headerId === headerId && f.fieldtype !== "header"
   );
 
   const newTemplate = {
@@ -186,19 +211,7 @@ const handleSaveTemplate = (headerId) => {
   //   console.log('output____',groupedFields,ungroupedFields,fields);
   // };
   
-const headers = fields.filter((field) => field.type === "header");
-
-const groupedFields = headers.map((header) => ({
-   header,
-   fields: fields.filter((field) => field.headerId === header.id && field.type !== "header"),
- }));
-const ungroupedFields = fields.filter((field) => !field.headerId && field.type !== "header");
-
-//   console.log('group and ungroup fields___',groupedFields,
-// ungroupedFields)
-  // Group fields by headers for rendering
-
-// console.log('formdata___',formData)
+const headers = fields.filter((field) => field.fieldtype === "header");
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -222,7 +235,8 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                   const newHeaderId = Date.now();
                   const newHeader = {
                     id: newHeaderId,
-                    type: "header",
+                    fieldtype: "header",
+                    // type: "header",
                     label: selectedTemplate.header,
                   };
 
@@ -251,6 +265,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
               Field Palette
             </Typography>
             <Divider sx={{ mb: 2 }} />
+            <Typography sx={{fontSize:'22px',color:'rgba(122, 122, 121, 0.89)',mb:1,p:0.5}}>Building Elements:</Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Button
                 variant="outlined"
@@ -287,6 +302,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
               >
                 Header
               </Button>
+               <Typography sx={{fontSize:'22px',color:'rgba(122, 122, 121, 0.89)'}}>Building Templates:</Typography>
               {headers.map((header) => (
                 <Box key={header.id} sx={{ pl: 2 }}>
                   <Typography variant="subtitle2">{header.label}</Typography>
@@ -339,9 +355,18 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
             />
 
             <Box sx={{ display: "flex",justifyContent:"center", flexDirection: "column", gap: 2, mb: 3 }}>
-              {ungroupedFields.map((field) => (
-                <Box key={field.id}>
-                  {field.type === "text" && (
+             
+              {grouping.ungroupFields.map((field) => (
+                <Box key={field.id}
+                sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",  // centers horizontally
+                      gap: 1,
+                      mt: 1,
+                    }}
+                >
+                  {field.fieldtype === "text" && (
                     <>
                     <TextField
                       label={field.label}
@@ -362,7 +387,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                     </IconButton>
                     </>
                   )}
-                  {field.type === "date" && (
+                  {field.fieldtype === "date" && (
                     <>
                     <DatePicker
                       label={field.label}
@@ -377,7 +402,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                     </IconButton>
                      </>
                   )}
-                  {field.type === "contact" && (
+                  {field.fieldtype === "contact" && (
                     <>
                     <TextField
                       label={field.label}
@@ -399,7 +424,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                     </IconButton>
                     </>
                   )}
-                  {field.type === "dropdown" && (
+                  {field.fieldtype === "dropdown" && (
                     <div sx={{display:'flex',justifyContent:"center",flexDirection:"row"}}>
                     <FormControl>
                       <InputLabel>{field.label}</InputLabel>
@@ -423,7 +448,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                   )}
                 </Box>
               ))}
-              {groupedFields.map(({ header, fields }) => (
+              {grouping.groupFields.map(({ header, fields }) => (
                         <Box
                           key={header.id}
                           sx={{
@@ -477,8 +502,9 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                                   mt: 1,
                                 }}
                               >
-                                {field.type === "text" && (
-                                  <>
+                                {field.fieldtype === "text" && (
+                                  <div style={{display:'flex',justifyContent:'center'}}>
+                                    <div>
                                     <TextField
                                       label={field.label}
                                       fullWidth
@@ -491,6 +517,9 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                                       value={formData[field.id] || ""}
                                       onChange={(e) => handleChange(field.id, e.target.value)}
                                     />
+                                    </div>
+                                    <div>
+
                                     <IconButton
                                       onClick={(e) => {
                                         // setGroupedCountFields((prev) => prev - 1);
@@ -499,9 +528,10 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                                     >
                                       <DeleteIcon />
                                     </IconButton>
-                                  </>
+                                    </div>
+                                  </div>
                                 )}
-                                {field.type === "date" && (
+                                {field.fieldtype === "date" && (
                                   <>
                                     <DatePicker
                                       label={field.label}
@@ -519,7 +549,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                                     </IconButton>
                                   </>
                                 )}
-                                {field.type === "contact" && (
+                                {field.fieldtype === "contact" && (
                                   <>
                                     <TextField
                                       label={field.label}
@@ -545,7 +575,7 @@ const ungroupedFields = fields.filter((field) => !field.headerId && field.type !
                                     </IconButton>
                                   </>
                                 )}
-                                {field.type === "dropdown" && (
+                                {field.fieldtype === "dropdown" && (
                                   <>
                                     <FormControl fullWidth>
                                       <InputLabel>{field.label}</InputLabel>
