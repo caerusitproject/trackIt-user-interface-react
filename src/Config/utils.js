@@ -12,3 +12,8 @@ export const firstLastName = (flname)=>{
     var regularExpression = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,50}$/
     return regularExpression.test(flname)
 }
+
+export const validatePhoneNo = (phoneNo) => {
+  var regularExpression = /^[6-9]\d{9}$/;
+  return regularExpression.test(phoneNo);
+};

@@ -89,7 +89,7 @@ export const Label = styled.label`
 `;
 
 export const Input = styled.input`
-  width: 100%;
+  width: 96%;
   padding: 0.5rem;
   border: 1px solid #ced4da;
   border-radius: 4px;

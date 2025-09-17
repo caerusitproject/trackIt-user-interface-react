@@ -23,7 +23,6 @@ export default function SuccessFailureSnackbar() {
     <>
     <Snackbar 
         open={opener} 
-        
         autoHideDuration={3000} 
         onClose={()=>{
           dispatch(actions.closeSnackbar())

@@ -1,10 +1,11 @@
 // src/actions/userActions.js
-import {fetchUserService} from "../services/users.services"
-
+import {fetchUserService,storeRegisterUser} from "../services/users.services"
+import * as actions from "../actions"
 export const USER_SUCCESS='USER_SUCCESS'
 export const OPEN_LOADER='OPEN_LOADER'
 export const CLOSE_LOADER='CLOSE_LOADER'
 export const CAPTCHA_DATA='CAPTCHA_DATA'
+export const REGISTER_USER='REGISTER_USER'
 
 export const fetchUser = () => {
   return async (dispatch) => {
@@ -35,4 +36,29 @@ export const saveCaptchaData=(data)=>{
             payload:data
         })
     })
+}
+
+export const registerUser=(data)=>{
+    return (dispatch)=>{
+        dispatch
+        ({
+            type:OPEN_LOADER
+        })
+        storeRegisterUser(data)
+        .then((res)=>{
+                if(res){
+                    dispatch({
+                           type:CLOSE_LOADER
+                       })
+                    dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
+                }
+        }).catch((err)=>{
+            console.log('register_user',err)
+             dispatch({
+                type:CLOSE_LOADER
+            })
+            dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+        })
+      
+    }
 }

@@ -3,7 +3,8 @@ const initialState = {
   loading: false,
   data: null,
   error: null,
-  captchadata:null
+  captchadata:null,
+  registerData:null
 };
 
 export const userReducer = (state = initialState, action) => {
@@ -14,7 +15,8 @@ export const userReducer = (state = initialState, action) => {
       return { ...state, loading: false, dataList: action.payload };
     case 'USER_FAILURE':
       return { ...state, loading: false, error: action.error };
-
+    case 'REGISTER_USER':
+      return { ...state, loading: false, registerData: action.payload };
      case 'CAPTCHA_DATA':
       return { ...state, captchadata:action.payload };
     case 'OPEN_LOADER':
