@@ -16,3 +16,19 @@ export function fetchUserService(){
         }
     })
 }
+
+
+export const storeRegisterUser=(data)=>{
+    return new Promise(async(resolve,reject)=>{
+        try{
+             let response= await api.post(`/gateway/auth/register`,data);
+            if(response && (response?.data?.success)){
+                resolve(response?.data)
+            }else{
+                reject(response.data?.response?.data)
+            }
+        }catch(err){
+                reject(err.response?.data)
+        }
+    })
+}

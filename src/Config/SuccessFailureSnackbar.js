@@ -21,7 +21,6 @@ export default function SuccessFailureSnackbar() {
 
   return (
     <>
-    {/* <Button onClick={()=>setOpen(true)}>Click</Button> */}
     <Snackbar 
         open={opener} 
         autoHideDuration={3000} 
@@ -35,7 +34,7 @@ export default function SuccessFailureSnackbar() {
           dispatch(actions.closeSnackbar())
         }}
           severity={status}
-          variant="filled"
+          // variant='outlined'
           sx={{ width: '100%' }}
         >
           {message}

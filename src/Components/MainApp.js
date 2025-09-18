@@ -1,10 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
-import { BrowserRouter as Router, Route, Routes, Outlet, Navigate } from "react-router-dom";
-import { useEffect, Suspense } from "react";
+import { BrowserRouter as Router, Route, Routes, Outlet, Navigate, useNavigate } from "react-router-dom";
+import React, { useEffect, Suspense } from "react";
 import * as actions from "../actions";
 import { routes } from "./RoutesConfig";
-
-import Navbar from "../Components/HomePage/Navbar";
+import { Box ,Toolbar } from "@mui/material";
+import SideNavbar from "./HomePage/SideNavbar";
 import Footer from "../Components/HomePage/Footer";
 import Login from "../Components/UserLogin/LoginPage";
 import PasswordReset from "../Components/UserLogin/PasswordReset";
@@ -13,22 +13,60 @@ import GlobalLoader from "../Config/GlobalLoader";
 import LinearProgress from '@mui/material/LinearProgress';
 import SuccessFailureSnackbar from "../Config/SuccessFailureSnackbar";
 import ProtectedRoute from "../Config/ProtectedRoute";
-import HomePage from "../Components/HomePage/HomePage";
-import PublicRoute from "../Config/PublicRoute"
+import PublicRoute from "../Config/PublicRoute";
+import TopNavbar from "./HomePage/TopNavbar";
+
+
 
 // Layout with Navbar + Footer
 function AppLayout() {
+  const collapsed =useSelector((state)=>state.login.collapsed)
+   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  // Watch for resize → update mobile/desktop mode
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+ console.log('sidenavbar__',collapsed)
+  
   return (
    <>
-      <Navbar />
-      <div style={{ marginTop: "4px", marginBottom: "24px" }}>
-        <Suspense fallback={<LinearProgress/>}>
-          <GlobalLoader/>
-          <SuccessFailureSnackbar/>
-          <Outlet />
-        </Suspense>
-      </div>
-      <Footer />
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      {/* Top AppBar */}
+      <TopNavbar
+       isMobile={isMobile}
+       setIsMobile={setIsMobile}
+      />
+      {/* Push content below appbar */}
+      <Toolbar  
+     
+      />
+
+      {/* Body: Sidebar + Main */}
+      <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        {/* Sidebar */}
+        <SideNavbar
+          isMobile={isMobile}
+        />
+
+        {/* Main Content */}
+        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Suspense fallback={<LinearProgress sx={{mt:1.5}}/>}>
+            <GlobalLoader />
+            <SuccessFailureSnackbar />
+
+            <main style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+              <Outlet />
+            </main>
+            <Footer />
+          </Suspense>
+        </Box>
+      </Box>
+    </Box>
     </>
   );
 }

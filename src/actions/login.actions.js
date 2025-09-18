@@ -3,12 +3,23 @@ const OPEN_SNACK_BAR = 'OPEN_SNACK_BAR';
 const CLOSE_SNACK_BAR = 'CLOSE_SNACK_BAR';
 const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 const LOGOUT = 'LOGOUT';
+const TOGGLE_SIDE_NAVBAR = 'TOGGLE_SIDE_NAVBAR';
+
 
 export const openSnackbar=(data)=>{
     return(dispatch=>{
         dispatch({
             type:OPEN_SNACK_BAR,
             payload:{message:data.message,status:data.status}
+        })
+    })
+}
+
+export const openCollapsed=(data)=>{
+    return(dispatch=>{
+        dispatch({
+            type:TOGGLE_SIDE_NAVBAR,
+            payload:data
         })
     })
 }

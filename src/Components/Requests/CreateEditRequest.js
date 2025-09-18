@@ -22,7 +22,7 @@ import styled from "styled-components";
 import { default as Selected } from 'react-select';
 import makeAnimated from 'react-select/animated';
 import Slide from '@mui/material/Slide';
-import TextEditor from "./TicketDetails/TextEditor";
+import TextEditor from "./TicketDetails/Resolution/TextEditor";
 
 import dayjs from "dayjs";
 

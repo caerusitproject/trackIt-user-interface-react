@@ -13,10 +13,12 @@ import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import PasswordStrengthBar from 'react-password-strength-bar';
 import {validateEmail,checkPasswordComplexity,
-  firstLastName} from "../../Config/utils";
+  firstLastName,validatePhoneNo} from "../../Config/utils";
 import {openSnackbar} from "../../actions"
 import { useDispatch } from "react-redux";
 import * as actions from "../../actions";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
 
 export default function RegisterUser() {
   const dispatch = useDispatch();
@@ -24,28 +26,58 @@ export default function RegisterUser() {
     firstName: "",
     lastName: "",
     email: "",
-    password: ""
+    password: "",
+    phoneno:"",
+    // actualPhoneNo:"",
+    countryCode:''
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const resetterForm=()=>{
+    setFormData({...formData,
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phoneno:"",
+    countryCode:''
+    })
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     let forwardForm= isValidate();
-    if(forwardForm?.enabler == 'success'){
+    if(forwardForm?.status == 'success'){
       // form submission will happen here
-      console.log("Form Submitted:",forwardForm, checkPasswordComplexity(formData?.password));
+      let updatedPhoneno=''
+      if(formData && formData.phoneno.length == 12){
+        updatedPhoneno=formData.phoneno.slice(2)
+      }else if(formData && formData.phoneno.length == 13){
+         updatedPhoneno=formData.phoneno.slice(3)
+      }
+      delete formData.phoneno;
+      const payload = { ...formData ,phoneNumber:updatedPhoneno}
+      dispatch(actions.registerUser(payload))
+      console.log("Form Submitted:",payload, checkPasswordComplexity(formData?.password));
+      resetterForm()
     }else{
       dispatch(actions.openSnackbar(forwardForm))
-      // alert(forwardForm?.messager)
     }
   };
-
+  console.log('phoneno___',formData.actualPhoneNo,formData.countryCode)
   const isValidate=()=>{
     let enable = false;
     let message = ''
+    let updatedPhoneno=''
+
+     if(formData && formData.phoneno.length == 12){
+        updatedPhoneno=formData.phoneno.slice(2)
+      }else if(formData && formData.phoneno.length == 13){
+         updatedPhoneno=formData.phoneno.slice(3)
+      }
     if(formData && !validateEmail(formData?.email) && formData?.email.length > 0 ){
       enable = true
       message= 'Format of email is invalid!'
@@ -61,6 +93,11 @@ export default function RegisterUser() {
     if(formData && !checkPasswordComplexity(formData?.password) && formData?.password.length > 0){
       enable = true
       message= 'Password format is not satisfactory!'
+    }
+
+    if(formData && !validatePhoneNo(updatedPhoneno) && formData?.phoneno.length > 0){
+      enable = true
+      message= 'Please enter a valid Phone Number !'
     }
     return {status:enable && enable == true ? 'error' : 'success', message:message}
   }
@@ -120,6 +157,8 @@ export default function RegisterUser() {
               onChange={handleChange}
               required
             />
+
+            
               {/* Password checker bar */}
                 {formData && formData.password && 
                   <PasswordStrengthBar 
@@ -129,6 +168,29 @@ export default function RegisterUser() {
                 
                 }
           </FormGroup>
+            <div style={{width:"100%"}}>
+          <FormGroup >
+            <Label htmlFor="Phone Number">Phone Number</Label>
+                <PhoneInput
+                country={'in'}
+                enableSearch={true}
+                value={formData.phoneno}
+                onKeyDown={(e,phone)=>{
+                  if(phone && phone.length > 10){
+                    e.preventDefault()
+                  }
+                }}
+                onChange={(phone,countries,value)=>{
+                  // console.log('country code__',count)
+                  setFormData({...formData,phoneno:phone,
+                    countryCode:countries?.dialCode
+                  })
+                  }
+                }
+              />
+              
+          </FormGroup>
+            </div>
 
           <Button 
               variant='contained'
@@ -136,7 +198,7 @@ export default function RegisterUser() {
               type="submit"
               fullWidth
               disabled={(formData?.email.length > 0 && formData?.firstName.length > 0 &&
-                formData?.lastName.length > 0 && formData?.password.length > 0) ? false : true
+                formData?.lastName.length > 0 && formData?.password.length > 0 && formData?.phoneno.length > 0) ? false : true
               }
           >
           Register</Button>

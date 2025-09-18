@@ -15,7 +15,7 @@ export default function Footer() {
     <Paper
       elevation={6} // 🔥 Material shadow depth (0–24)
       sx={{
-        borderRadius: "1.5rem",
+        borderRadius: "0.5rem",
         marginTop: 2,
         backgroundColor: "#fff",
       }}

@@ -4,6 +4,7 @@ const initialState = {
  message:null,
  status:null,
  opener:false,
+ collapsed: false,
  isAuthenticated: storedUser ? true : false,
  user: storedUser ? JSON.parse(storedUser) : null,
 };
@@ -21,6 +22,11 @@ export const loginReducer = (state = initialState, action) => {
       return { 
         ...state, 
         opener:false
+    };
+    case 'TOGGLE_SIDE_NAVBAR':
+      return { 
+        ...state, 
+        collapsed:!(action.payload)
     };
     case "LOGIN_SUCCESS":
       localStorage.setItem('user',JSON.stringify(action.payload))

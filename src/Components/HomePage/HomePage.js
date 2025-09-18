@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbar from './Navbar';
+// import Navbar from './SideNavbar';
 import Labels from "./Labels";
 import SummaryPanel from "./SummaryPanel"
 import AnnouncementsPanel from './AnnouncementPanel';

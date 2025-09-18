@@ -10,9 +10,9 @@ Container,
 TicketRow,
 ActionBar
 } from "../../../styled_components/requestTicketDetails";
-import TicketLeft from "./TicketLeft";
-import TicketRight from "./TicketRight";
-import TextEditor from "./TextEditor";
+import TicketLeft from "./Details/TicketLeft";
+import TicketRight from "./Details/TicketRight";
+import TextEditor from "./Resolution/TextEditor";
 
 // ---------- Main Wrapper ----------
 export default function TicketBody() {
@@ -88,7 +88,7 @@ export default function TicketBody() {
         <TicketLeft />
         <TicketRight />
       </TicketRow>
-        {/* <TextEditor/> */}
+        
     </Container>
   );
 }

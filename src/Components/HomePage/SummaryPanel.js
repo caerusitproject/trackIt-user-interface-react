@@ -25,7 +25,7 @@ export default function SummaryPanel() {
       </SummaryTitle>
       <CardBody>  
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SummaryItem><Link>Need Clarification</Link></SummaryItem>
+          <SummaryItem><Link to='/request'>Need Clarification</Link></SummaryItem>
           <div>0</div>
         </div>
 
