@@ -13,7 +13,7 @@ import {
   InputgroupButtons,
   TextCenter
 } from '../../styled_components/login.styled';
-import {TextField,InputAdornment,Button} from '@mui/material';
+import {TextField,InputAdornment,Button, IconButton} from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import { Link, useNavigate } from 'react-router-dom';
 import PasswordIcon from '@mui/icons-material/Password';
@@ -24,9 +24,13 @@ import InputLabel from '@mui/material/InputLabel';
 import Paper from "@mui/material/Paper";
 import GoogleIcon from '@mui/icons-material/Google';
 import MicrosoftIcon from '@mui/icons-material/Microsoft';
-import * as actions from "../../actions";
+import * as actions from "../../stores/actions";
 import { useDispatch,useSelector } from 'react-redux';
 import { Navigate } from "react-router-dom";
+import { validateEmail, checkPasswordComplexity } from '../../Config/utils';
+import { loginUsersService } from '../../services/users.services';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 function Login() {
   const isAuthenticated = useSelector((state) => state.login.isAuthenticated);
@@ -37,7 +41,7 @@ function Login() {
     password:'',
     domain:''
   })
-
+ const [showPassword, setShowPassword] = React.useState(false)
     
 
   if (isAuthenticated) {
@@ -47,23 +51,70 @@ function Login() {
   const handleChange =(e)=>{
     setValue({...value,[e.target.name]:e.target.value})
   }
+
+ const resetterLogins=()=>{
+    setValue({...value,
+        email:'',
+        password:'',
+        domain:''
+      })
+ }
  const handleSubmit = (e)=>{
    e.preventDefault();
   console.log('login form___',value)
-    if(value && (value.email.length > 0 && value.password.length > 0 && typeof(value.domain) == 'string')){
-      let useData = {
-        email:value.email,
-        password:value.password,
-        domain:value.domain
-      }
-      dispatch(actions.loginSucess(useData))
-      dispatch(actions.openSnackbar({message:'Login Successfull',status:'success'}))
-      navigate('/home')
-      setValue({...value,email:'',domain:'',password:''})
-    }else{
-      return
+  let validateForm=validate();
+  delete value?.domain
+  if(validateForm?.status == 'success'){
+        //login api call 
+        let userData={
+          email:value?.email,
+          domain:value?.domain
+        }
+        dispatch(actions.openLoader())
+        loginUsersService(value)
+        .then((res)=>{
+            if(res){
+              dispatch(actions.closeLoader());
+              localStorage.setItem('access-token',(res?.data?.accessToken))
+              localStorage.setItem('refresh-token',(res?.data?.refreshToken))
+              dispatch(actions.loginSucess(userData))
+              resetterLogins()
+              navigate('/home')
+              dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
+            }
+        }).catch((err)=>{
+            dispatch(actions.closeLoader());
+            dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+           
+        })
+  }else{
+    return
+  }
+
+ }
+
+
+ const validate=()=>{
+
+  let enable = false;
+  let message='';
+
+   if(value && !validateEmail(value?.email) && value?.email?.length == 0 ){
+      enable = true
+      message= 'Format of email is invalid!'
     }
 
+    if(value && !checkPasswordComplexity(value?.password) && value?.password?.length == 0){
+        enable = true
+        message= 'Password format is not satisfactory!'
+    }
+
+    if(value && value?.domain?.length == 0){
+        enable = true
+        message= 'Domain is Required!'
+    }
+
+    return {status:enable && enable == true ? 'error' : 'success', message:message}
  }
 
 
@@ -137,7 +188,9 @@ function Login() {
                           input: {
                             startAdornment: (
                               <InputAdornment position="start">
-                                <PersonIcon />
+                                 <IconButton>
+                                    <PersonIcon />
+                                 </IconButton>
                               </InputAdornment>
                             )
                           }
@@ -146,7 +199,7 @@ function Login() {
                     
                       <TextField 
                           id="outlined-basic" 
-                          type="password"
+                          type={!showPassword ?"password":"text" }
                           label="Password" 
                           name="password"
                           autoComplete='on'
@@ -157,13 +210,15 @@ function Login() {
                           input: {
                             startAdornment: (
                               <InputAdornment position="start">
-                                <PasswordIcon />
+                                <IconButton onClick={()=>setShowPassword((prev)=>!prev)}>
+                                  {!showPassword ? <Visibility/> : <VisibilityOff/>}
+                                </IconButton>
                               </InputAdornment>
                             )
                           }
                           }}
                         />
-                        <FormControl sx={{ minWidth: 260,marginBottom:'10px' }}>
+                        <FormControl sx={{ minWidth: 276,marginBottom:'10px' }}>
                             <InputLabel id="demo-simple-select-helper-label">Domain</InputLabel>
                             <Select
                               labelId="demo-simple-select-helper-label"
@@ -187,7 +242,7 @@ function Login() {
                         type="submit"
                         variant="contained" 
                         style={{width:"70%"}}
-                        disabled={value && value.email.length > 0 && value.password.length > 0 && value.domain.length > 0 ? false : true}
+                        disabled={value && value?.email?.length > 0 && value?.password?.length > 0 && value?.domain?.length > 0 ? false : true}
                         >Log In</Button>
                         <TextCenter>
                         <small><Link to='/password_reset'>Forgot Password?</Link></small>

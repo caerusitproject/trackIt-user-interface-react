@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes, Outlet, Navigate, useNavigate } from "react-router-dom";
 import React, { useEffect, Suspense } from "react";
-import * as actions from "../actions";
+import * as actions from "../stores/actions";
 import { routes } from "./RoutesConfig";
 import { Box ,Toolbar } from "@mui/material";
 import SideNavbar from "./HomePage/SideNavbar";
@@ -76,6 +76,7 @@ function PublicLayout() {
   return (
     <div style={{ minHeight: "100vh" }}>
       <SuccessFailureSnackbar/>
+      <GlobalLoader />
       <Outlet />
     </div>
   );

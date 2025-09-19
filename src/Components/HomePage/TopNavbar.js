@@ -11,7 +11,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import imageLogo from "../../assets/TMS_logo1.png";
-import * as actions from "../../actions";
+import * as actions from "../../stores/actions";
+import { logoutService } from '../../services/users.services';
 import MicrosoftIcon from '@mui/icons-material/Microsoft';
 
 
@@ -79,6 +80,7 @@ export default function TopNavbar({isMobile,setIsMobile}) {
     
        const handleMenu = (event) => setAnchorEl(event.currentTarget);
       const handleClose = () => setAnchorEl(null);
+
       const handleNavigate = (path) => {
         setPendingRoute(path);
         handleClose();
@@ -117,23 +119,23 @@ export default function TopNavbar({isMobile,setIsMobile}) {
                 />
               </Search>
             </Toolbar>
+              <IconButton sx={{ color: "white" }}>
             <Tooltip title="Notifications">
-              <IconButton sx={{ color: "white" }}>
                 <NotificationsIcon />
-              </IconButton>
             </Tooltip>
+              </IconButton>
 
-            <Tooltip title="Settings">
               <IconButton sx={{ color: "white" }}>
+            <Tooltip title="Settings">
                 <SettingsIcon />
-              </IconButton>
             </Tooltip>
+              </IconButton>
 
-            <Tooltip title="Account">
               <IconButton onClick={handleMenu} sx={{ color: "white" }}>
+            <Tooltip title="Account">
                 <AccountCircleIcon />
-              </IconButton>
             </Tooltip>
+              </IconButton>
 
             <Menu
               anchorEl={anchorEl}
@@ -147,11 +149,32 @@ export default function TopNavbar({isMobile,setIsMobile}) {
               </MenuItem>
               <MenuItem onClick={() =>
                 { 
-                 dispatch(actions.logout())
-                 navigate("/login", { replace: true });
+                 let refreshToken=(localStorage.getItem('refresh-token'))
+                 console.log('logout refresh token___',refreshToken)
+                 if(!refreshToken){
+                  return
+                 }
+                 dispatch(actions.openLoader())
+                 logoutService({refreshToken:refreshToken})
+                 .then((res)=>{
+                    if(res){
+                        dispatch(actions.closeLoader());
+                        dispatch(actions.logout())
+                        dispatch(actions.openSnackbar({message:res?.message,status:"success"}))
+                        handleNavigate("/login")
+                        navigate("/login", { replace: true });
+                    }
+                 })
+                 .catch((err)=>{
+                    dispatch(actions.closeLoader());
+                    dispatch(actions.openSnackbar({message:err?.message,status:"error"}))
+                 })
+                }}
+                //  dispatch(actions.logout())
                 //  handleNavigate("/login")
-                }
-                 }>Log Out</MenuItem>
+                //  navigate("/login", { replace: true });
+                //  }}
+                 >Log Out</MenuItem>
             </Menu>
           </Box>
         </Toolbar>

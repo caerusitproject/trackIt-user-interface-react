@@ -7,21 +7,26 @@ import {
   Label,
   Input,
   RegisterCard,
-  TextCenter
+  TextCenter,InputWrapper
 } from "../../styled_components/register.styled";
 import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import PasswordStrengthBar from 'react-password-strength-bar';
-import {validateEmail,checkPasswordComplexity,
+import {
+  validateEmail,checkPasswordComplexity,
   firstLastName,validatePhoneNo} from "../../Config/utils";
-import {openSnackbar} from "../../actions"
+import {storeRegisterUser} from "../../services/users.services"
 import { useDispatch } from "react-redux";
-import * as actions from "../../actions";
+import * as actions from "../../stores/actions";
 import PhoneInput from 'react-phone-input-2'
+import {InputAdornment} from "@mui/material";
 import 'react-phone-input-2/lib/style.css'
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function RegisterUser() {
   const dispatch = useDispatch();
+  const [showPassword, setshowPassword] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -53,16 +58,28 @@ export default function RegisterUser() {
     if(forwardForm?.status == 'success'){
       // form submission will happen here
       let updatedPhoneno=''
-      if(formData && formData.phoneno.length == 12){
-        updatedPhoneno=formData.phoneno.slice(2)
-      }else if(formData && formData.phoneno.length == 13){
-         updatedPhoneno=formData.phoneno.slice(3)
+      if(formData && formData?.phoneno?.length == 12){
+        updatedPhoneno=formData?.phoneno?.slice(2)
+      }else if(formData && formData?.phoneno?.length == 13){
+         updatedPhoneno=formData?.phoneno?.slice(3)
       }
-      delete formData.phoneno;
+      // delete formData.phoneno;
       const payload = { ...formData ,phoneNumber:updatedPhoneno}
-      dispatch(actions.registerUser(payload))
+       dispatch(actions.openLoader())
+        storeRegisterUser(payload)
+        .then((res)=>{
+                if(res){
+                    dispatch(actions.closeLoader())
+                    resetterForm()
+                    dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
+                }
+        }).catch((err)=>{
+            console.log('register_user',err)
+            dispatch(actions.closeLoader())
+            dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+            
+        })
       console.log("Form Submitted:",payload, checkPasswordComplexity(formData?.password));
-      resetterForm()
     }else{
       dispatch(actions.openSnackbar(forwardForm))
     }
@@ -73,29 +90,29 @@ export default function RegisterUser() {
     let message = ''
     let updatedPhoneno=''
 
-     if(formData && formData.phoneno.length == 12){
-        updatedPhoneno=formData.phoneno.slice(2)
-      }else if(formData && formData.phoneno.length == 13){
-         updatedPhoneno=formData.phoneno.slice(3)
+     if(formData && formData?.phoneno?.length == 12){
+        updatedPhoneno=formData?.phoneno?.slice(2)
+      }else if(formData && formData?.phoneno?.length == 13){
+         updatedPhoneno=formData?.phoneno.slice(3)
       }
-    if(formData && !validateEmail(formData?.email) && formData?.email.length > 0 ){
+    if(formData && !validateEmail(formData?.email) && formData?.email.length == 0 ){
       enable = true
       message= 'Format of email is invalid!'
     }
-    if(formData && !firstLastName(formData?.firstName) && formData?.firstName.length > 0){
+    if(formData && !firstLastName(formData?.firstName) && formData?.firstName.length == 0){
       enable = true
       message= 'First Name is not valid!'
     }
-    if(formData && !firstLastName(formData?.lastName) && formData?.lastName.length > 0){
+    if(formData && !firstLastName(formData?.lastName) && formData?.lastName.length == 0){
       enable = true
       message= 'Last Name is not valid!'
     }
-    if(formData && !checkPasswordComplexity(formData?.password) && formData?.password.length > 0){
+    if(formData && !checkPasswordComplexity(formData?.password) && formData?.password.length == 0){
       enable = true
       message= 'Password format is not satisfactory!'
     }
 
-    if(formData && !validatePhoneNo(updatedPhoneno) && formData?.phoneno.length > 0){
+    if(formData && !validatePhoneNo(updatedPhoneno) && formData?.phoneno?.length == 0){
       enable = true
       message= 'Please enter a valid Phone Number !'
     }
@@ -148,17 +165,26 @@ export default function RegisterUser() {
 
           <FormGroup>
             <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-
-            
+            <InputWrapper>
+                   <div style={{border:'1px solid #cacaca',height:'29px',borderRadius: "3px 0 0 3px",width:'25px',backgroundColor:'#f5f5f5',padding:'2.1px',margin:'0 auto'}}>
+                     {showPassword ? 
+                     <Visibility onClick={()=>setshowPassword((prev)=> !prev)} style={{width:26,marginTop:2}}/>
+                     :
+                     <VisibilityOff onClick={()=>setshowPassword((prev)=> !prev)} style={{width:26,marginTop:2}}/>
+                      } 
+                    </div> 
+                  <Input
+                    type={!showPassword ? "text" : "password" }
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    /> 
+                    
+            </InputWrapper>
+          
               {/* Password checker bar */}
                 {formData && formData.password && 
                   <PasswordStrengthBar 
@@ -198,7 +224,7 @@ export default function RegisterUser() {
               type="submit"
               fullWidth
               disabled={(formData?.email.length > 0 && formData?.firstName.length > 0 &&
-                formData?.lastName.length > 0 && formData?.password.length > 0 && formData?.phoneno.length > 0) ? false : true
+                formData?.lastName.length > 0 && formData?.password.length > 0 && formData?.phoneno?.length > 0) ? false : true
               }
           >
           Register</Button>

@@ -3,11 +3,14 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import Box from "@mui/material/Box";
+import { useSelector } from "react-redux";
 
 export default function GlobalLoader() {
+  const {loading} = useSelector((state)=>state.user)
+  console.log('global loader___',loading)
   return (
     <Dialog
-      open={false}
+      open={loading}
       maxWidth="xs"
       PaperProps={{
         sx: {
@@ -35,9 +38,11 @@ export default function GlobalLoader() {
             "svg circle": { stroke: "url(#my_gradient)" },
           }}
         />
-        <p sx={{
-          textAlign: "center",
-          fontSize: "1.1rem",
+        <p style={{
+          display:"flex",
+          justifyContent:"center",
+          alignItems:"center",
+          fontSize: "1.2rem",
           fontWeight: 500,
         }}><b>Loading...</b></p>
       </Box>

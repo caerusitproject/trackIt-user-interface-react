@@ -21,7 +21,7 @@ export function fetchUserService(){
 export const storeRegisterUser=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-             let response= await api.post(`/gateway/auth/register`,data);
+            let response= await api.post(`/gateway/auth/register`,data);
             if(response && (response?.data?.success)){
                 resolve(response?.data)
             }else{
@@ -29,6 +29,36 @@ export const storeRegisterUser=(data)=>{
             }
         }catch(err){
                 reject(err.response?.data)
+        }
+    })
+}
+
+export const loginUsersService=(data)=>{
+    return new Promise(async(resolve,reject)=>{
+        try{
+            let response= await api.post(`/gateway/auth/login`,data);
+            if(response && Boolean(response?.data?.success) == true){
+                resolve(response?.data)
+            }else{
+                reject(response.data?.response?.data)
+            }
+        }catch(err){
+                reject(err.response?.data)
+        }
+    })
+}
+
+export const logoutService=(data)=>{
+    return new Promise(async(resolve,reject)=>{
+        try{
+            let response = await api.post(`/gateway/auth/logout`,data);
+             if(response && Boolean(response?.data?.success) == true){
+                resolve(response?.data)
+            }else{
+                reject(response.data?.response?.data)
+            }
+        }catch(err){
+              reject(err.response?.data)
         }
     })
 }

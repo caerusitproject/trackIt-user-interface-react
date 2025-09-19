@@ -88,6 +88,43 @@ export const Label = styled.label`
   font-weight: 500;
 `;
 
+// export const Input = styled.input`
+//   width: 100%;
+//   padding: 0.5rem 2.5rem 0.5rem 0.5rem; /* extra padding on right for icon */
+//   border: 1px solid #ced4da;
+//   border-radius: 4px;
+//   font-size: 1rem;
+
+//   &:focus {
+//     outline: none;
+//     border-color: #007bff;
+//     box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+//   }
+// `;
+
+// Wrapper for positioning
+export const InputWrapper = styled.div`
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:0px;
+`;
+
+// // Icon
+// export const Icon = styled.span`
+//   position: absolute;
+//   right: 10px;
+//   top: 50%;
+//   transform: translateY(-50%);
+//   cursor: pointer;
+//   font-size: 1.2rem;
+//   color: #6c757d;
+
+//   &:hover {
+//     color: #007bff;
+//   }
+// `;
+
 export const Input = styled.input`
   width: 96%;
   padding: 0.5rem;
