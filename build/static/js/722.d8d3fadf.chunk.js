@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkticketmanagementsystem=self.webpackChunkticketmanagementsystem||[]).push([[722],{6062:(e,t,a)=>{a.r(t),a.d(t,{default:()=>n});a(5043);var s=a(954);const i=a.p+"static/media/mrt-pdf-example.42fe920e9a41ebc21aa7.pdf";var c=a(579);function n(){return(0,c.jsxs)("div",{children:[(0,c.jsx)(s.A,{}),(0,c.jsx)("iframe",{src:i,width:"100%",height:"500px",title:"PDF Viewer"})]})}}}]);
-//# sourceMappingURL=722.d8d3fadf.chunk.js.map
