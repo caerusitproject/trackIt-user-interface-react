@@ -62,3 +62,20 @@ export const logoutService=(data)=>{
         }
     })
 }
+
+export const fetchUserProfileService=()=>{
+    return new Promise(async(resolve,reject)=>{
+        let userEmail=JSON.parse(localStorage.getItem('user'))
+        userEmail=userEmail?.email.trim().toLowerCase()
+        try{
+            let response = await api.get(`/gateway/email/${userEmail}`);
+            if(response && Boolean(response?.data?.success) == true){
+                resolve(response?.data)
+            }else{ 
+                reject(response.data?.response?.data)
+            }
+        }catch(err){
+              reject(err.response?.data)
+        }
+    })
+}

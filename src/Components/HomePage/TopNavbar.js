@@ -163,6 +163,7 @@ export default function TopNavbar({isMobile,setIsMobile}) {
                         dispatch(actions.openSnackbar({message:res?.message,status:"success"}))
                         handleNavigate("/login")
                         navigate("/login", { replace: true });
+
                     }
                  })
                  .catch((err)=>{
@@ -170,10 +171,6 @@ export default function TopNavbar({isMobile,setIsMobile}) {
                     dispatch(actions.openSnackbar({message:err?.message,status:"error"}))
                  })
                 }}
-                //  dispatch(actions.logout())
-                //  handleNavigate("/login")
-                //  navigate("/login", { replace: true });
-                //  }}
                  >Log Out</MenuItem>
             </Menu>
           </Box>

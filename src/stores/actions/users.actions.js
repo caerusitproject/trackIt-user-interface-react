@@ -1,5 +1,5 @@
 // src/actions/userActions.js
-import {fetchUserService,storeRegisterUser} from "../../services/users.services"
+import {fetchUserService,storeRegisterUser,fetchUserProfileService} from "../../services/users.services"
 import * as actions from "../actions"
 export const USER_SUCCESS='USER_SUCCESS'
 export const OPEN_LOADER='OPEN_LOADER'
@@ -60,6 +60,31 @@ export const registerUser=(data)=>{
             dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
         })
       
+    }
+}
+
+export const fetchUserDataProfile=()=>{
+    return (dispatch)=>{
+        dispatch
+        ({
+            type:OPEN_LOADER
+        })
+        fetchUserProfileService()
+        .then((res)=>{
+            if(res && res?.data){
+                localStorage.setItem('user-profile',JSON.stringify(res?.data))
+                 dispatch({
+                    type:CLOSE_LOADER
+                })
+            }
+        }).catch((err)=>{
+            console.log('fetch_user_profile_err',err)
+             dispatch({
+                type:CLOSE_LOADER
+            })
+            dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+        })
+        
     }
 }
 

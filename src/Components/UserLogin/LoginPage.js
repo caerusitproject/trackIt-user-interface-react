@@ -77,11 +77,14 @@ function Login() {
               dispatch(actions.closeLoader());
               localStorage.setItem('access-token',(res?.data?.accessToken))
               localStorage.setItem('refresh-token',(res?.data?.refreshToken))
+
+              // store user data in local storage
               dispatch(actions.loginSucess(userData))
+              dispatch(actions.fetchUserDataProfile())
               resetterLogins()
               navigate('/home')
               dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
-            }
+            }  
         }).catch((err)=>{
             dispatch(actions.closeLoader());
             dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
