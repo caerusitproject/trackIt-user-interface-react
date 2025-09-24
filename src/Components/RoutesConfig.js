@@ -11,6 +11,8 @@ const EditForm = lazy(() => import('../Components/Requests/CreateEditRequest'));
 const TicketDetails = lazy(() => import('../Components/Requests/TicketDetails/TicketBody'));
 const AccountDetails = lazy(() => import('../Components/HomePage/AccountDetails'));
 const FormBuilder = lazy(() => import('../Components/HomePage/FormBuilder'))
+const AssetsViewer = lazy(() => import('../Components/Assets/AssetsNavigation'))
+const AssetMenuBuilder = lazy(() => import('../Components/Assets/AssetMenuBuilder'))
 
 
 export const routes = [
@@ -19,6 +21,8 @@ export const routes = [
   { path: '/request', element: <Request /> },
   { path: '/account-details', element: <AccountDetails /> },
   { path: '/solution', element: <FormBuilder /> },
+  { path: '/assets', element: <AssetsViewer /> },
+  { path: '/asset-menu-builder', element: <AssetMenuBuilder /> },
   { path: '/request/ticket/:ticketId', element: <TicketDetails /> },
   { path: '/password_reset', element: <PasswordReset /> },
   { path: '/home', element: <Home /> },
