@@ -5,6 +5,19 @@ import PersonIcon from "@mui/icons-material/Person";
 import SecurityIcon from "@mui/icons-material/Security";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import GoogleIcon from "@mui/icons-material/Google";
+import {
+  // Container,
+  Card,
+  Title,
+  FormGroup,
+  // Label,
+  Input,
+  RegisterCard,
+  TextCenter,InputWrapper,
+  PhoneInputWrapper
+} from "../../styled_components/register.styled";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useSelector } from "react-redux";
 
 // Styled wrapper
 const Container = styled.div`
@@ -90,6 +103,38 @@ const AddLink = styled(Button)`
 `;
 
 export default function AccountSettings() {
+  const userProfileData=useSelector((state)=>state.user.userProfileData);
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState({
+    email: "",
+    phone: "",  
+    firstName: "",
+    lastName: "",
+    password: ""
+  });
+
+  React.useEffect(() => {
+    if(userProfileData && open == true){
+      
+      setValue({
+        email: userProfileData?.email,
+        phone: userProfileData?.phoneNumber,
+        name: `${userProfileData?.firstName} ${userProfileData?.lastName}`,
+        role: userProfileData?.roles[0]
+      })
+    }
+  }, [open])
+
+  console.log('account user profiles___',userProfileData,open);
+
+  const handleChange=(e)=>{
+    e.preventDefault();
+    const {name,value}=e.target;
+    setValue({
+      ...value,
+      [name]:value
+    })
+  }
   return (
     <Container>
       {/* Sidebar */}
@@ -129,9 +174,44 @@ export default function AccountSettings() {
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" gap={2}>
               <Avatar src="/avatar.png" />
-              <Value>Cameron Walker</Value>
+              {!open ?
+                <Value>{`${userProfileData?.firstName.toUpperCase()} ${userProfileData?.lastName.toUpperCase()}`}</Value>
+                :
+               <FormGroup>
+                    <Label htmlFor="email">Employee Name</Label>
+                    <Input
+                      type="text"
+                      name="name"
+                      // placeholder="Enter your email"
+                      value={value.name}
+                      onChange={handleChange}
+                      required
+                    />
+                </FormGroup>
+              }
+              
+
             </Box>
-            <Button variant="text">Update profile</Button>
+            {!open ?
+            <Button onClick={(e)=>{
+              e.preventDefault();
+              setOpen(true);
+            }} variant="text">Update profile</Button>
+            :
+          <div style={{display:'flex',justifyContent:"space-between", alignItems:'center',gap:'10px'}}>
+            <Button onClick={(e)=>{
+                e.preventDefault();
+                //APi Call will be triggered for updating profile
+                  setOpen(false);
+              }} variant="text">Save Profile</Button>
+
+            <Button onClick={(e)=>{
+                e.preventDefault();
+                setOpen(false);
+              }} variant="text">Cancel</Button>
+
+          </div>
+          }
           </Box>
         </Section>
 
@@ -140,8 +220,22 @@ export default function AccountSettings() {
         {/* Email */}
         <Section>
           <Label>Email addresses</Label>
-          <Value>example@personal.com</Value>
-          <AddLink variant="text">+ Add email address</AddLink>
+          {!open ?
+          <Value>{userProfileData?.email}</Value>
+          :
+           <FormGroup>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={value.email}
+                  onChange={handleChange}
+                  required
+                />
+           </FormGroup>
+        }
+
+          {/* <AddLink variant="text">+ Add email address</AddLink> */}
         </Section>
 
         <Divider />
@@ -149,20 +243,51 @@ export default function AccountSettings() {
         {/* Phone */}
         <Section>
           <Label>Phone number</Label>
-          <Value>+1 (555) 123-4567</Value>
-          <AddLink variant="text">+ Add phone number</AddLink>
+          {!open ?
+          <Value>{`+ ${userProfileData?.countryCode} ${userProfileData?.phoneNumber}`}</Value>
+          :
+           <FormGroup>
+                <Input
+                  type="number"
+                  name="phone"
+                  placeholder="Enter your number"
+                  value={value.phone}
+                  onChange={handleChange}
+                  required
+                />
+          </FormGroup>
+          
+           }
+
+          {/* <AddLink variant="text">+ Add phone number</AddLink> */}
         </Section>
 
         <Divider />
 
         {/* Connected accounts */}
         <Section>
-          <Label>Connected accounts</Label>
+          <Label>Role</Label>
           <Box display="flex" alignItems="center" gap={1}>
-            <GoogleIcon color="error" fontSize="small" />
-            <Value>example@gmail.com</Value>
+            <AccountCircleIcon fontSize="small" />
+            {/* <GoogleIcon color="error" fontSize="small" /> */}
+            {!open ?
+              <Value>{userProfileData?.roles[0]}</Value>
+              :
+             <FormGroup>
+                <Input
+                  type="text"
+                  id="email"
+                  name="role"
+                  // placeholder="Enter your email"
+                  value={value.role}
+                  onChange={handleChange}
+                  required
+                />
+              </FormGroup>
+
+            }
+
           </Box>
-          <AddLink variant="text">+ Connect account</AddLink>
         </Section>
       </MainContent>
     </Container>

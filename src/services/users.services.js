@@ -21,7 +21,7 @@ export function fetchUserService(){
 export const storeRegisterUser=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-            let response= await api.post(`/gateway/auth/register`,data);
+            let response= await api.post(`/auth/register`,data);
             if(response && (response?.data?.success)){
                 resolve(response?.data)
             }else{
@@ -36,7 +36,7 @@ export const storeRegisterUser=(data)=>{
 export const loginUsersService=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-            let response= await api.post(`/gateway/auth/login`,data);
+            let response= await api.post(`/auth/login`,data);
             if(response && Boolean(response?.data?.success) == true){
                 resolve(response?.data)
             }else{
@@ -51,7 +51,7 @@ export const loginUsersService=(data)=>{
 export const logoutService=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-            let response = await api.post(`/gateway/auth/logout`,data);
+            let response = await api.post(`/auth/logout`,data);
              if(response && Boolean(response?.data?.success) == true){
                 resolve(response?.data)
             }else{
@@ -68,8 +68,14 @@ export const fetchUserProfileService=()=>{
         let userEmail=JSON.parse(localStorage.getItem('user'))
         userEmail=userEmail?.email.trim().toLowerCase()
         try{
-            let response = await api.get(`/gateway/email/${userEmail}`);
-            if(response && Boolean(response?.data?.success) == true){
+            let response = await api.get(`/api/v1/users/email/${userEmail}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("access-token")}`
+                    }
+                }
+            );
+            if(response && Boolean(response?.data?.status) == true){
                 resolve(response?.data)
             }else{ 
                 reject(response.data?.response?.data)

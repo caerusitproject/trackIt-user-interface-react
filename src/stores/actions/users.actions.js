@@ -6,6 +6,7 @@ export const OPEN_LOADER='OPEN_LOADER'
 export const CLOSE_LOADER='CLOSE_LOADER'
 export const CAPTCHA_DATA='CAPTCHA_DATA'
 export const REGISTER_USER='REGISTER_USER'
+export const USER_PROFILE_DATA='USER_PROFILE_DATA'
 
 export const fetchUser = () => {
   return async (dispatch) => {
@@ -72,7 +73,11 @@ export const fetchUserDataProfile=()=>{
         fetchUserProfileService()
         .then((res)=>{
             if(res && res?.data){
-                localStorage.setItem('user-profile',JSON.stringify(res?.data))
+                console.log('fetch_user_profile_res',res?.data)
+                dispatch({
+                    type:USER_PROFILE_DATA,
+                    payload:res?.data
+                })
                  dispatch({
                     type:CLOSE_LOADER
                 })
