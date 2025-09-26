@@ -65,7 +65,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refresh-token");
         // Make request to refresh token endpoint
-        const response = await axios.post(`${domainurl}/gateway/auth/refresh`, {
+        const response = await axios.post(`${domainurl}/auth/refresh`, {
           refreshToken,
         });
         console.log('axios instance__',response?.data)
@@ -83,8 +83,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Handle refresh token failure (e.g., invalid refresh token)
         processQueue(refreshError);
-        localStorage.removeItem("access-token");
-        localStorage.removeItem("refresh-token");
+        console.error('Refresh token error:', refreshError);
+        // localStorage.removeItem("access-token");
+        // localStorage.removeItem("refresh-token");
         // Optionally redirect to login page
         // window.location.href = "/login";
         return Promise.reject(refreshError);

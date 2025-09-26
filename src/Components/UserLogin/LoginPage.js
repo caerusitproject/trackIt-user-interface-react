@@ -42,7 +42,6 @@ function Login() {
     domain:''
   })
  const [showPassword, setShowPassword] = React.useState(false)
-    
 
   if (isAuthenticated) {
     return <Navigate to="/home" replace />;
@@ -80,7 +79,7 @@ function Login() {
 
               // store user data in local storage
               dispatch(actions.loginSucess(userData))
-              dispatch(actions.fetchUserDataProfile())
+              // dispatch(actions.fetchUserDataProfile())
               resetterLogins()
               navigate('/home')
               dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
@@ -221,7 +220,7 @@ function Login() {
                           }
                           }}
                         />
-                        <FormControl sx={{ minWidth: 276,marginBottom:'10px' }}>
+                        <FormControl sx={{ minWidth: 272,marginBottom:'10px' }}>
                             <InputLabel id="demo-simple-select-helper-label">Domain</InputLabel>
                             <Select
                               labelId="demo-simple-select-helper-label"

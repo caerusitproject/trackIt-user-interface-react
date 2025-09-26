@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect, use} from 'react';
 import { Box ,AppBar,Toolbar,IconButton,Tooltip,Menu,MenuItem } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from "@mui/icons-material/Search";
@@ -14,6 +14,9 @@ import imageLogo from "../../assets/TMS_logo1.png";
 import * as actions from "../../stores/actions";
 import { logoutService } from '../../services/users.services';
 import MicrosoftIcon from '@mui/icons-material/Microsoft';
+import { validateAvatarName } from '../../Config/utils';
+import Avatar from '@mui/material/Avatar';
+import { deepOrange, deepPurple } from '@mui/material/colors';
 
 
  const Search = styled('div')(({ theme }) => ({
@@ -59,12 +62,23 @@ import MicrosoftIcon from '@mui/icons-material/Microsoft';
 }));
 
 export default function TopNavbar({isMobile,setIsMobile}) {
-  const collapsed =useSelector((state)=>state.login.collapsed)
-    const dispatch=useDispatch();
-    const navigate = useNavigate();
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const [pendingRoute, setPendingRoute] = React.useState(null);
+  const isAuthenticated = useSelector((state) => state.login.isAuthenticated);
+  const navigate = useNavigate();
+  const dispatch=useDispatch();
+  const [pendingRoute, setPendingRoute] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
+  const userProfileName=useSelector((state)=>state.user.userProfileData);
+  const collapsed =useSelector((state)=>state.login.collapsed);
+
+  console.log('userProfileName__',userProfileName?.firstName,userProfileName?.lastName);
+
+  React.useEffect(() => {
+      if(isAuthenticated && Boolean(isAuthenticated) == true){
+        dispatch(actions.fetchUserDataProfile())
+      }
+    }, [isAuthenticated])
+  
       useEffect(() => {
         if (!anchorEl && pendingRoute) {
           navigate(pendingRoute);
@@ -132,9 +146,10 @@ export default function TopNavbar({isMobile,setIsMobile}) {
               </IconButton>
 
               <IconButton onClick={handleMenu} sx={{ color: "white" }}>
-            <Tooltip title="Account">
-                <AccountCircleIcon />
-            </Tooltip>
+                <Tooltip title="Account">
+                    <Avatar sx={{ bgcolor: deepPurple[500] }}>{validateAvatarName(userProfileName?.firstName,userProfileName?.lastName)}</Avatar>
+                    {/* <AccountCircleIcon /> */}
+                </Tooltip>
               </IconButton>
 
             <Menu
@@ -170,6 +185,9 @@ export default function TopNavbar({isMobile,setIsMobile}) {
                     dispatch(actions.closeLoader());
                     dispatch(actions.openSnackbar({message:err?.message,status:"error"}))
                  })
+                  // dispatch(actions.logout())
+                  // handleNavigate("/login")
+                  // navigate("/login", { replace: true });
                 }}
                  >Log Out</MenuItem>
             </Menu>

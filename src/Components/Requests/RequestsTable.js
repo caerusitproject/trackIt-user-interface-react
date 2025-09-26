@@ -114,9 +114,9 @@ export default function RequestsTable() {
     pageSize: 5,
   });
 
-  useEffect(() => {
-    fetchPage(pagination.pageIndex, pagination.pageSize);
-  }, [pagination]);
+  // useEffect(() => {
+  //   fetchPage(pagination.pageIndex, pagination.pageSize);
+  // }, [pagination]);
 
   // ✅ Define columns
   const columns = useMemo(

@@ -7,7 +7,8 @@ import {
   Label,
   Input,
   RegisterCard,
-  TextCenter,InputWrapper
+  TextCenter,InputWrapper,
+  PhoneInputWrapper
 } from "../../styled_components/register.styled";
 import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -194,10 +195,10 @@ export default function RegisterUser() {
                 
                 }
           </FormGroup>
-            <div style={{width:"100%"}}>
-          <FormGroup >
+            {/* <div style={{width:"100%"}}> */}
+          {/* <FormGroup >
             <Label htmlFor="Phone Number">Phone Number</Label>
-                <PhoneInput
+              <PhoneInputWrapper
                 country={'in'}
                 enableSearch={true}
                 value={formData.phoneno}
@@ -215,8 +216,29 @@ export default function RegisterUser() {
                 }
               />
               
-          </FormGroup>
-            </div>
+          </FormGroup> */}
+
+          <FormGroup>
+            <Label htmlFor="Phone Number">Phone Number</Label>
+            <PhoneInputWrapper
+              country={"in"}
+              enableSearch={true}
+              value={formData.phoneno}
+              onKeyDown={(e, phone) => {
+                if (phone && phone.length > 10) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(phone, countries, value) => {
+                setFormData({
+                  ...formData,
+                  phoneno: phone,
+                  countryCode: countries?.dialCode,
+                });
+              }}
+            />
+            </FormGroup>
+            {/* </div> */}
 
           <Button 
               variant='contained'

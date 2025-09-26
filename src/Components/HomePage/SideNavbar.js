@@ -154,7 +154,7 @@ export default function SideNavbar() {
           {collapsed && Boolean(collapsed) == true ?
           <Tooltip  placement="right" title="Asset Menu Builder" arrow>
             <MenuItem
-              icon={<FlagIcon />}
+              icon={<BuildIcon />}
               active={location.pathname === "/asset-menu-builder"}
               // component={<NavLink to="/report" />}
             >
