@@ -7,7 +7,6 @@ import {
   Box,
   IconButton,
   Button,
-
   Chip,
   Divider,
 } from "@mui/material";
@@ -16,8 +15,11 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AssetMenuBuilderDialogue from "./AssetMenuBuilderDialogue";
+import { useDispatch } from "react-redux";
+import * as actions from '../../stores/actions'
 
 const MenuItemAssets = () => {
+  const dispatch = useDispatch();
   const [expanded, setExpanded] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [modalData, setModalData] = useState({});
@@ -57,25 +59,38 @@ const MenuItemAssets = () => {
     },
     {
       id: 2,
-      title: "Office Supplies",
+      title: "Softwares",
       menutype:"main-menu",
-      description: "Essential office materials and equipment",
+      description: "Essential office tools and equipment",
       submenus: [
         {
           id: 201,
-          title: "Stationary",
+          title: "OS",
           menutype:"sub-menu",
           description: "Pens, papers, and other supplies",
         },
         {
           id: 202,
-          title: "Furniture",
+          title: "Building Blocks",
+          menutype:"sub-menu",
+          description: "Desks, chairs, and storage units",
+        },
+         {
+          id: 203,
+          title: "Utilities",
           menutype:"sub-menu",
           description: "Desks, chairs, and storage units",
         },
       ],
     },
   ]);
+
+  React.useEffect(() => {
+    if(menuData && menuData.length > 0){
+      dispatch(actions.setMenuItems(menuData));
+    }
+  }, [menuData])
+  
 
   const handleExpand = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
