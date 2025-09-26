@@ -8,7 +8,7 @@ export const TasksPanel = styled.div`
   border-radius: 7px;
   min-width: 300px;
   max-width: 310px;
-  min-height: 460px;
+  min-height: 565px;
   height: 390px;
   display: flex;
   flex-direction: column;

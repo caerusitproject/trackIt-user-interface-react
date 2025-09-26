@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const breakpoints = {
   mobile: '480px',
@@ -167,3 +169,40 @@ export const TextCenter = styled.div`
     }
   }
 `;
+
+ // keep its base styles
+
+export const PhoneInputWrapper = styled(PhoneInput)`
+  width: 100% !important;
+
+  .form-control {
+    width: 100% !important;
+    padding: 0.5rem 0.75rem 0.5rem 3rem !important; /* extra left padding for flag */
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    // height: auto !important;
+    display: flex;
+    align-items: center;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff !important;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+    }
+
+    &::placeholder {
+      color: #6c757d;
+      opacity: 1;
+      vertical-align: middle;
+    }
+  }
+
+  .flag-dropdown {
+    border: none !important;
+    background: transparent !important;
+  }
+`;
+
+

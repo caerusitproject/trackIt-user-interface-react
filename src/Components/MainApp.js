@@ -20,10 +20,13 @@ import TopNavbar from "./HomePage/TopNavbar";
 
 // Layout with Navbar + Footer
 function AppLayout() {
+  
   const collapsed =useSelector((state)=>state.login.collapsed)
-   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const dispatch=useDispatch();
 
   // Watch for resize → update mobile/desktop mode
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -88,9 +91,10 @@ export default function MainApp() {
   const arrayList = useSelector((state) => state.user.dataList);
   const value =  JSON.parse(localStorage.getItem('user'));
 
-  useEffect(() => {
-    dispatch(actions.fetchUser());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(actions.fetchUser());
+  // }, [dispatch]);
+
 
   console.log('value JSON___',value);
 
@@ -111,12 +115,12 @@ export default function MainApp() {
         </Route>
 
         {/* Protected layout (with navbar/footer) */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
+        {/* <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}> */}
             {/* Default landing → Home */}
-            <Route index element={<Navigate to="/home" replace />} />
+            {/* <Route index element={<Navigate to="/home" replace />} /> */}
 
-            {routes
+            {/* {routes
               .filter(
                 (r) =>
                   r.path !== "/login" &&
@@ -131,9 +135,38 @@ export default function MainApp() {
                   element={element}
                   {...rest}
                 />
+              ))} */}
+          {/* </Route>
+        </Route> */}
+
+          <Route element={<AppLayout />}>
+            {/* Default landing → Home */}
+            <Route index element={<Navigate to="/home" replace />} />
+
+            {routes
+              .filter(
+                (r) =>
+                  r.path !== "/login" &&
+                  r.path !== "/password_reset" &&
+                  r.path !== "/register-user"
+              )
+              .map(({ path, element, index, roles, ...rest }) => (
+                <Route
+                  key={path || "index"}
+                  path={path}
+                  index={index}
+                  element={
+                    roles ? (
+                      <ProtectedRoute roles={roles} element={element} />
+                    ) : (
+                      element
+                    )
+                  }
+                  {...rest}
+                />
               ))}
           </Route>
-        </Route>
+
 
         {/* Fallback → conditional based on auth */}
         <Route
