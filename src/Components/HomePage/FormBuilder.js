@@ -27,7 +27,8 @@ import {
   Chip,
   Alert,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Slider
 } from "@mui/material";
 import {
   Delete,
@@ -43,9 +44,13 @@ import {
   Settings,
   Visibility,
   ContentCopy,
-  LibraryAdd
+  LibraryAdd,
+  AspectRatio,
+  ViewColumn,
+  ViewStream
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import DialogueFormBuilder from "./DialogueFormBuilder";
 
 // Create a custom theme
 const theme = createTheme({
@@ -87,12 +92,16 @@ export default function FormBuilder() {
   const [currentTemplateFields, setCurrentTemplateFields] = useState([]);
   const [templateName, setTemplateName] = useState("");
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
-  const [activeTemplateTab, setActiveTemplateTab] = useState(0);
   const [copiedFieldId, setCopiedFieldId] = useState(null);
+  const [formLayout, setFormLayout] = useState({
+    direction: "column",
+    spacing: 2,
+    alignItems: "stretch"
+  });
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Add field
+  // Add field with default layout configuration
   const addField = (type, toTemplate = false) => {
     const newField = {
       id: Date.now(),
@@ -101,6 +110,11 @@ export default function FormBuilder() {
       required: false,
       placeholder: `Enter ${type.toLowerCase()}`,
       options: type === "Select" ? ["Option 1", "Option 2"] : [],
+      layout: {
+        width: "100%",
+        flex: 1,
+        direction: "vertical"
+      }
     };
     
     if (toTemplate) {
@@ -133,11 +147,21 @@ export default function FormBuilder() {
     setSelectedField({ ...selectedField, [key]: value });
   };
 
-  // Update template field
-  const updateTemplateField = (index, key, value) => {
-    const updated = [...currentTemplateFields];
-    updated[index] = { ...updated[index], [key]: value };
-    setCurrentTemplateFields(updated);
+  // Update field layout
+  const updateFieldLayout = (key, value) => {
+    const updated = fields.map((f) =>
+      f.id === selectedField.id 
+        ? { 
+            ...f, 
+            layout: { ...f.layout, [key]: value } 
+          } 
+        : f
+    );
+    setFields(updated);
+    setSelectedField({ 
+      ...selectedField, 
+      layout: { ...selectedField.layout, [key]: value } 
+    });
   };
 
   // Remove field
@@ -147,13 +171,6 @@ export default function FormBuilder() {
     if (selectedField && selectedField.id === id) {
       setSelectedField(updated.length > 0 ? updated[0] : null);
     }
-  };
-
-  // Remove template field
-  const removeTemplateField = (index) => {
-    const updated = [...currentTemplateFields];
-    updated.splice(index, 1);
-    setCurrentTemplateFields(updated);
   };
 
   // Move field up/down
@@ -166,45 +183,6 @@ export default function FormBuilder() {
       updated[index],
     ];
     setFields(updated);
-  };
-
-  console.log('submit form____',fields)
-
-  // Move template field up/down
-  const moveTemplateField = (index, direction) => {
-    const updated = [...currentTemplateFields];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= updated.length) return;
-    [updated[index], updated[targetIndex]] = [
-      updated[targetIndex],
-      updated[index],
-    ];
-    setCurrentTemplateFields(updated);
-  };
-
-  // Save template
-  const saveTemplate = () => {
-    if (!templateName.trim() || currentTemplateFields.length === 0) return;
-    const newTemplate = {
-      id: Date.now(),
-      name: templateName,
-      fields: currentTemplateFields,
-      createdAt: new Date().toLocaleString(),
-    };
-    setTemplates([...templates, newTemplate]);
-    setCurrentTemplateFields([]);
-    setTemplateName("");
-    setActiveTemplateTab(0);
-  };
-
-  // Add template to form
-  const addTemplateToForm = (template) => {
-    const fieldsWithNewIds = template.fields.map(field => ({
-      ...field,
-      id: Date.now() + Math.random()
-    }));
-    setFields([...fields, ...fieldsWithNewIds]);
-    setTemplateModalOpen(false);
   };
 
   // Render field input based on type
@@ -243,17 +221,98 @@ export default function FormBuilder() {
     }
   };
 
+  // Flexible grouping logic that supports 2 or 3 fields per row based on widths
+  const groupFieldsByRow = (fields) => {
+    const groups = [];
+    let currentGroup = [];
+    let currentRowWidth = 0;
+    
+    fields.forEach((field, index) => {
+      const isHorizontal = field.layout?.direction === "horizontal";
+      const fieldWidth = field.layout?.width || "100%";
+      
+      // Calculate approximate width percentage
+      let widthPercent = 100;
+      if (fieldWidth.includes('%')) {
+        widthPercent = parseInt(fieldWidth);
+      } else if (fieldWidth === 'auto') {
+        widthPercent = 100; // Auto takes full available space
+      }
+      
+      if (isHorizontal) {
+        // Check if adding this field would exceed 100% width (with some tolerance)
+        if (currentRowWidth + widthPercent <= 110) { // 110% tolerance for gaps
+          currentGroup.push(field);
+          currentRowWidth += widthPercent;
+        } else {
+          // Start new row
+          if (currentGroup.length > 0) {
+            groups.push(currentGroup);
+          }
+          currentGroup = [field];
+          currentRowWidth = widthPercent;
+        }
+      } else {
+        // Vertical field - push current group and start new one
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+          currentGroup = [];
+          currentRowWidth = 0;
+        }
+        groups.push([field]);
+      }
+    });
+    
+    // Push any remaining fields in current group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
+  // Get container style based on form layout
+  const getFormContainerStyle = () => ({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: formLayout.spacing,
+    minWidth: 'max-content'
+  });
+
+  // Get field style based on field layout
+  const getFieldStyle = (field) => ({
+    flex: '0 0 auto',
+    width: field.layout?.width || '100%',
+    minWidth: field.layout?.width || '100%',
+    boxSizing: 'border-box'
+  });
+
+  // Get row container style for horizontal fields
+  const getRowContainerStyle = () => ({
+    display: 'flex',
+    flexDirection: 'row',
+    gap: formLayout.spacing,
+    alignItems: 'flex-start',
+    flexWrap: 'nowrap',
+    width: '100%',
+    minWidth: 'max-content',
+    overflow: 'visible'
+  });
+
+  const fieldGroups = groupFieldsByRow(fields);
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ 
         p: { xs: 1, md: 2 }, 
         backgroundColor: 'background.default', 
-        minHeight: '100vh' 
+        minHeight: '100vh',
+        overflow: 'auto'
       }}>
         <Paper 
           elevation={2} 
           sx={{ 
-            overflow: 'hidden',
+            overflow: 'visible',
             borderRadius: 3
           }}
         >
@@ -321,6 +380,24 @@ export default function FormBuilder() {
                   </Grid>
                 ))}
               </Grid>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  Spacing: {formLayout.spacing}
+                </Typography>
+                <Slider
+                  value={formLayout.spacing}
+                  onChange={(e, newValue) => setFormLayout({...formLayout, spacing: newValue})}
+                  min={0}
+                  max={8}
+                  step={1}
+                  size="small"
+                />
+              </Box>
+
+              <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
+                Supports 2 or 3 fields per row based on width settings
+              </Alert>
               
               <Button
                 variant="outlined"
@@ -363,7 +440,9 @@ export default function FormBuilder() {
               <Paper sx={{ 
                 p: 3, 
                 backgroundColor: 'white',
-                minHeight: 300
+                minHeight: 300,
+                overflow: 'visible',
+                minWidth: 'min-content'
               }}>
                 {fields.length === 0 ? (
                   <Box sx={{ 
@@ -379,98 +458,119 @@ export default function FormBuilder() {
                     </Typography>
                   </Box>
                 ) : (
-                  <Box>
-                    {fields.map((field, index) => (
+                  <Box sx={getFormContainerStyle()}>
+                    {fieldGroups.map((group, groupIndex) => (
                       <Box 
-                        key={field.id} 
-                        onClick={() => setSelectedField(field)}
-                        sx={{
-                          p: 2,
-                          mb: 2,
-                          borderRadius: 2,
-                          border: '2px solid',
-                          borderColor: selectedField?.id === field.id ? 'primary.main' : 'transparent',
-                          backgroundColor: selectedField?.id === field.id ? '#f0f9ff' : 'transparent',
-                          transition: '0.2s',
-                          cursor: 'pointer',
-                          '&:hover': {
-                            backgroundColor: '#f8fafc'
-                          }
-                        }}
+                        key={groupIndex}
+                        sx={group.length > 1 ? getRowContainerStyle() : { width: '100%' }}
                       >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                          <Typography variant="subtitle1" fontWeight="500">
-                            {field.label} {field.required && <span style={{color: '#ef4444'}}>*</span>}
-                          </Typography>
-                          <Chip 
-                            label={field.type} 
-                            size="small" 
-                            variant="outlined" 
-                            sx={{ fontSize: '0.7rem', height: 24 }} 
-                          />
-                        </Box>
-                        
-                        {renderFieldInput(field)}
-                        
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5, mt: 1 }}>
-                          <Tooltip title="Move up">
-                            <span>
-                              <IconButton 
-                                size="small" 
-                                disabled={index === 0}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveField(index, "up");
-                                }}
-                              >
-                                <ArrowUpward fontSize="small" />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          <Tooltip title="Move down">
-                            <span>
-                              <IconButton 
-                                size="small" 
-                                disabled={index === fields.length - 1}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveField(index, "down");
-                                }}
-                              >
-                                <ArrowDownward fontSize="small" />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          <Tooltip title="Duplicate">
-                            <IconButton 
-                              size="small" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                duplicateField(field);
+                        {group.map((field, fieldIndex) => {
+                          const actualIndex = fields.findIndex(f => f.id === field.id);
+                          return (
+                            <Box 
+                              key={field.id} 
+                              onClick={() => setSelectedField(field)}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                border: '2px solid',
+                                borderColor: selectedField?.id === field.id ? 'primary.main' : 'transparent',
+                                backgroundColor: selectedField?.id === field.id ? '#f0f9ff' : 'transparent',
+                                transition: '0.2s',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  backgroundColor: '#f8fafc'
+                                },
+                                ...getFieldStyle(field)
                               }}
                             >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton 
-                              size="small" 
-                              color="error"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeField(field.id);
-                              }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                        
-                        {copiedFieldId === field.id && (
-                          <Alert severity="success" sx={{ mt: 1, py: 0 }}>
-                            Field duplicated
-                          </Alert>
-                        )}
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                <Typography variant="subtitle1" fontWeight="500">
+                                  {field.label} {field.required && <span style={{color: '#ef4444'}}>*</span>}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  {field.layout?.direction === "horizontal" && (
+                                    <Chip 
+                                      label="Sideways" 
+                                      size="small" 
+                                      color="primary" 
+                                      variant="outlined"
+                                      sx={{ fontSize: '0.6rem', height: 20 }} 
+                                    />
+                                  )}
+                                  <Chip 
+                                    label={field.type} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ fontSize: '0.7rem', height: 24 }} 
+                                  />
+                                </Box>
+                              </Box>
+                              
+                              {renderFieldInput(field)}
+                              
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5, mt: 1 }}>
+                                <Tooltip title="Move up">
+                                  <span>
+                                    <IconButton 
+                                      size="small" 
+                                      disabled={actualIndex === 0}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        moveField(actualIndex, "up");
+                                      }}
+                                    >
+                                      <ArrowUpward fontSize="small" />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                                <Tooltip title="Move down">
+                                  <span>
+                                    <IconButton 
+                                      size="small" 
+                                      disabled={actualIndex === fields.length - 1}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        moveField(actualIndex, "down");
+                                      }}
+                                    >
+                                      <ArrowDownward fontSize="small" />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                                <Tooltip title="Duplicate">
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      duplicateField(field);
+                                    }}
+                                  >
+                                    <ContentCopy fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton 
+                                    size="small" 
+                                    color="error"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeField(field.id);
+                                    }}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                              
+                              {copiedFieldId === field.id && (
+                                <Alert severity="success" sx={{ mt: 1, py: 0 }}>
+                                  Field duplicated
+                                </Alert>
+                              )}
+                            </Box>
+                          );
+                        })}
                       </Box>
                     ))}
                     
@@ -479,7 +579,7 @@ export default function FormBuilder() {
                       color="success" 
                       fullWidth 
                       size="large"
-                      sx={{ mt: 2 }}
+                      sx={{ mt: 2, flex: '0 0 auto' }}
                     >
                       Submit Form
                     </Button>
@@ -519,6 +619,60 @@ export default function FormBuilder() {
                     margin="normal"
                     size="small"
                   />
+                  
+                  {/* Field Layout Configuration */}
+                  <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AspectRatio /> Field Layout
+                  </Typography>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Field Direction</InputLabel>
+                    <Select
+                      value={selectedField.layout?.direction || "vertical"}
+                      onChange={(e) => updateFieldLayout("direction", e.target.value)}
+                      label="Field Direction"
+                    >
+                      <MenuItem value="vertical">Vertical (Stacked)</MenuItem>
+                      <MenuItem value="horizontal">Horizontal (Sideways)</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Width</InputLabel>
+                    <Select
+                      value={selectedField.layout?.width || "100%"}
+                      onChange={(e) => updateFieldLayout("width", e.target.value)}
+                      label="Width"
+                    >
+                      <MenuItem value="100%">Full Width</MenuItem>
+                      <MenuItem value="75%">75% Width</MenuItem>
+                      <MenuItem value="50%">Half Width</MenuItem>
+                      <MenuItem value="33%">One Third</MenuItem>
+                      <MenuItem value="25%">Quarter Width</MenuItem>
+                      <MenuItem value="auto">Auto</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Flex Grow: {selectedField.layout?.flex || 1}
+                    </Typography>
+                    <Slider
+                      value={selectedField.layout?.flex || 1}
+                      onChange={(e, newValue) => updateFieldLayout("flex", newValue)}
+                      min={0}
+                      max={5}
+                      step={1}
+                      size="small"
+                    />
+                  </Box>
+
+                  <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
+                    <strong>Layout Tips:</strong>
+                    <br />• 50% width = 2 fields per row
+                    <br />• 33% width = 3 fields per row  
+                    <br />• 25% width = 4 fields per row
+                  </Alert>
                   
                   {selectedField.type === "Select" && (
                     <Box sx={{ mt: 2 }}>
@@ -584,240 +738,21 @@ export default function FormBuilder() {
           </Box>
         </Paper>
 
-        {/* Template Manager Modal */}
-        <Dialog
+        {/* Template Manager Modal - */}
+        <DialogueFormBuilder
+          fieldTypes={fieldTypes}
           open={templateModalOpen}
-          onClose={() => setTemplateModalOpen(false)}
-          fullWidth
-          maxWidth="md"
-          PaperProps={{ sx: { borderRadius: 3 } }}
-        >
-          <DialogTitle sx={{ 
-            backgroundColor: '#ec9531ff', 
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}>
-            <ContentCopy /> Template Manager
-          </DialogTitle>
-          
-          <AppBar position="static" color="default" elevation={1}>
-            <Tabs
-              value={activeTemplateTab}
-              onChange={(e, v) => setActiveTemplateTab(v)}
-              indicatorColor="primary"
-              textColor="inherit"
-              variant="fullWidth"
-            >
-              <Tab label="Saved Templates" />
-              <Tab label="Build Template" />
-            </Tabs>
-          </AppBar>
-          
-          <DialogContent sx={{ p: 3 }}>
-            {/* Saved Templates */}
-            {activeTemplateTab === 0 && (
-              <Box>
-                {templates.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
-                    <ContentCopy sx={{ fontSize: 48, opacity: 0.5, mb: 1 }} />
-                    <Typography>No templates saved yet</Typography>
-                  </Box>
-                ) : (
-                  <Grid container spacing={2}>
-                    {templates.map((t) => (
-                      <Grid item xs={12} md={6} key={t.id}>
-                        <Card 
-                          variant="outlined"
-                          sx={{ 
-                            p: 2,
-                            transition: '0.2s',
-                            '&:hover': {
-                              boxShadow: 2,
-                              borderColor: 'primary.main'
-                            }
-                          }}
-                        >
-                          <Typography variant="subtitle1" fontWeight="500" gutterBottom>
-                            {t.name}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary" gutterBottom>
-                            {t.fields.length} fields · Created {t.createdAt}
-                          </Typography>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => addTemplateToForm(t)}
-                            fullWidth
-                            sx={{ mt: 1 , backgroundColor:"#ec9531ff"}}
-                          >
-                            Add to Form
-                          </Button>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              </Box>
-            )}
-
-            {/* Build Template */}
-            {activeTemplateTab === 1 && (
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="body1" fontWeight="500">
-                    Build Template
-                  </Typography>
-                  
-                  <Button
-                    variant="outlined"
-                    startIcon={<Add />}
-                    onClick={() => {
-                      setCurrentTemplateFields([
-                        ...currentTemplateFields,
-                        { id: Date.now(), label: "", type: "Text", required: false, placeholder: "" },
-                      ]);
-                    }}
-                  >
-                    Add Field
-                  </Button>
-                </Box>
-
-                {/* Template Fields List */}
-                {currentTemplateFields.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
-                    <Typography>No fields added to template</Typography>
-                  </Box>
-                ) : (
-                  currentTemplateFields.map((field, index) => (
-                    <Paper
-                      key={field.id}
-                      sx={{
-                        p: 2,
-                        mb: 1.5,
-                        display: 'flex',
-                        gap: 1,
-                        alignItems: 'center',
-                        backgroundColor: '#f8fafc'
-                      }}
-                    >
-                      <TextField
-                        label="Label"
-                        value={field.label}
-                        onChange={(e) => updateTemplateField(index, "label", e.target.value)}
-                        fullWidth
-                        size="small"
-                      />
-                      
-                      <FormControl sx={{ minWidth: 120 }} size="small">
-                        <InputLabel>Type</InputLabel>
-                        <Select
-                          value={field.type}
-                          onChange={(e) => updateTemplateField(index, "type", e.target.value)}
-                          label="Type"
-                        >
-                          {fieldTypes.map((f) => (
-                            <MenuItem key={f.type} value={f.type}>
-                              {f.type}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      
-                      <Box>
-                        <Tooltip title="Move up">
-                          <span>
-                            <IconButton 
-                              size="small" 
-                              disabled={index === 0}
-                              onClick={() => moveTemplateField(index, "up")}
-                            >
-                              <ArrowUpward fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Move down">
-                          <span>
-                            <IconButton 
-                              size="small" 
-                              disabled={index === currentTemplateFields.length - 1}
-                              onClick={() => moveTemplateField(index, "down")}
-                            >
-                              <ArrowDownward fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => removeTemplateField(index)}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Paper>
-                  ))
-                )}
-
-                {/* Preview */}
-                {currentTemplateFields.length > 0 && (
-                  <>
-                    <Divider sx={{ my: 3 }} />
-                    
-                    <Typography variant="h6" mb={2}>
-                      Preview
-                    </Typography>
-                    
-                    <Paper sx={{ p: 2, backgroundColor: '#f8fafc' }}>
-                      {currentTemplateFields.map((field) => (
-                        <Box key={field.id} sx={{ mb: 2 }}>
-                          <Typography variant="body2" fontWeight="500" gutterBottom>
-                            {field.label || "Label"} {field.required && "*"}
-                          </Typography>
-                          {renderFieldInput(field)}
-                        </Box>
-                      ))}
-                    </Paper>
-                  </>
-                )}
-
-                {/* Save Template */}
-                <Box mt={3}>
-                  <TextField
-                    fullWidth
-                    label="Template Name"
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    size="small"
-                  />
-                  
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    onClick={saveTemplate}
-                    disabled={!templateName.trim() || currentTemplateFields.length === 0}
-                  >
-                    Save Template
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
-          
-          <DialogActions sx={{ p: 2 }}>
-            <Button 
-              onClick={() => setTemplateModalOpen(false)}
-              variant="outlined"
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+          setTemplateModalOpen={setTemplateModalOpen}
+          fields={fields}
+          setFields={setFields}
+          currentTemplateFields={currentTemplateFields}
+          setCurrentTemplateFields={setCurrentTemplateFields}
+          templates={templates}
+          setTemplates={setTemplates}
+          templateName={templateName}
+          setTemplateName={setTemplateName}
+          renderFieldInput={renderFieldInput}
+        />
       </Box>
     </ThemeProvider>
   );
