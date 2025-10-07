@@ -21,7 +21,7 @@ export function fetchUserService(){
 export const storeRegisterUser=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-            let response= await api.post(`/auth/register`,data);
+            let response= await api.post(`/auth/register`,data, {skipAuth:true});
             if(response && (response?.data?.success)){
                 resolve(response?.data)
             }else{
@@ -36,7 +36,7 @@ export const storeRegisterUser=(data)=>{
 export const loginUsersService=(data)=>{
     return new Promise(async(resolve,reject)=>{
         try{
-            let response= await api.post(`/auth/login`,data);
+            let response= await api.post(`/auth/login`,data, {skipAuth:true});
             if(response && Boolean(response?.data?.success) == true){
                 resolve(response?.data)
             }else{

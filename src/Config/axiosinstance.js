@@ -30,6 +30,9 @@ const processQueue = (error, token = null) => {
 // Add request interceptor to attach access token
 api.interceptors.request.use(
   config => {
+     if (config.skipAuth) {
+        return config; // no tokens attached
+      }
     const accessToken = localStorage.getItem("access-token");
     if (accessToken) {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
@@ -44,6 +47,10 @@ api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
+
+     if (originalRequest?.skipAuth) {
+      return Promise.reject(error);
+    }
 
     // Check if error is 401 and request hasn't been retried
     if (error.response?.status === 401 && !originalRequest._retry) {
