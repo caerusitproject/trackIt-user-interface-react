@@ -7,6 +7,8 @@ const initialState = {
  collapsed: false,
  isAuthenticated: storedUser ? true : false,
  user: storedUser ? JSON.parse(storedUser) : null,
+ drawerMessage:null,
+ toggle:false
 };
 
 export const loginReducer = (state = initialState, action) => {
@@ -31,6 +33,13 @@ export const loginReducer = (state = initialState, action) => {
     case "LOGIN_SUCCESS":
       localStorage.setItem('user',JSON.stringify(action.payload))
       return { ...state, isAuthenticated: true, user: action.payload };
+
+    case "OPEN_SIDE_DRAWER":
+      return { 
+        ...state, 
+        drawerMessage:action.payload.message,
+        toggle:action.payload.toggle
+    };
 
     case "LOGOUT":
       localStorage.clear();
