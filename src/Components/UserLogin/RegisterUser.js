@@ -56,6 +56,7 @@ export default function RegisterUser() {
   const handleSubmit = (e) => {
     e.preventDefault();
     let forwardForm= isValidate();
+    console.log('sign up form validatior',forwardForm)
     if(forwardForm?.status == 'success'){
       // form submission will happen here
       let updatedPhoneno=''
@@ -96,24 +97,24 @@ export default function RegisterUser() {
       }else if(formData && formData?.phoneno?.length == 13){
          updatedPhoneno=formData?.phoneno.slice(3)
       }
-    if(formData && !validateEmail(formData?.email) && formData?.email.length == 0 ){
+    if(formData && !validateEmail(formData?.email) || formData?.email.length == 0 ){
       enable = true
       message= 'Format of email is invalid!'
     }
-    if(formData && !firstLastName(formData?.firstName) && formData?.firstName.length == 0){
+    if(formData && !firstLastName(formData?.firstName) || formData?.firstName.length == 0){
       enable = true
       message= 'First Name is not valid!'
     }
-    if(formData && !firstLastName(formData?.lastName) && formData?.lastName.length == 0){
+    if(formData && !firstLastName(formData?.lastName) || formData?.lastName.length == 0){
       enable = true
       message= 'Last Name is not valid!'
     }
-    if(formData && !checkPasswordComplexity(formData?.password) && formData?.password.length == 0){
+    if(formData && !checkPasswordComplexity(formData?.password) || formData?.password.length == 0){
       enable = true
       message= 'Password format is not satisfactory!'
     }
 
-    if(formData && !validatePhoneNo(updatedPhoneno) && formData?.phoneno?.length == 0){
+    if(formData && !validatePhoneNo(updatedPhoneno) || formData?.phoneno?.length == 0){
       enable = true
       message= 'Please enter a valid Phone Number !'
     }
