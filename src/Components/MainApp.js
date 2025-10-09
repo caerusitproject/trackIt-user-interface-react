@@ -7,7 +7,8 @@ import { Box ,Toolbar } from "@mui/material";
 import SideNavbar from "./HomePage/SideNavbar";
 import Footer from "../Components/HomePage/Footer";
 import Login from "../Components/UserLogin/LoginPage";
-import PasswordReset from "../Components/UserLogin/PasswordReset";
+import ForgetPassword from "../Components/UserLogin/ForgetPassword";
+import ResetPassword from "../Components/UserLogin/PasswordReset";
 import RegisterPage from "../Components/UserLogin/RegisterUser";
 import GlobalLoader from "../Config/GlobalLoader";
 import LinearProgress from '@mui/material/LinearProgress';
@@ -109,7 +110,8 @@ export default function MainApp() {
         <Route element={<PublicRoute />}>
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/password_reset" element={<PasswordReset />} />
+            <Route path="/forget_password" element={<ForgetPassword />} />
+            <Route path="/reset_password" element={<ResetPassword />} />
             <Route path="/register-user" element={<RegisterPage />} />
           </Route>
         </Route>
@@ -147,8 +149,9 @@ export default function MainApp() {
               .filter(
                 (r) =>
                   r.path !== "/login" &&
-                  r.path !== "/password_reset" &&
-                  r.path !== "/register-user"
+                  r.path !== "/forget_password" &&
+                  r.path !== "/register-user" &&
+                  r.path !== "/reset_password"
               )
               .map(({ path, element, index, roles, ...rest }) => (
                 <Route

@@ -20,6 +20,7 @@ import {useSelector} from "react-redux";
 import { Tooltip } from "@mui/material";
 import BuildIcon from '@mui/icons-material/Build';
 import { NavLink, useLocation } from "react-router-dom";
+import WebStoriesIcon from '@mui/icons-material/WebStories';
 
 export default function SideNavbar() {
   const collapsed =useSelector((state)=>state.login.collapsed)
@@ -170,6 +171,28 @@ export default function SideNavbar() {
             >
               <NavLink to="/asset-menu-builder" />
               Asset Menu Builder
+            </MenuItem>
+          }
+
+            {collapsed && Boolean(collapsed) == true ?
+          <Tooltip  placement="right" title="Milestone Builder" arrow>
+            <MenuItem
+              icon={<WebStoriesIcon />}
+              active={location.pathname === "/milestone-builder"}
+              // component={<NavLink to="/report" />}
+            >
+              <NavLink to="/milestone-builder" />
+              Milestone Builder
+            </MenuItem>
+            </Tooltip>
+          :
+             <MenuItem
+              icon={<WebStoriesIcon />}
+              active={location.pathname === "/milestone-builder"}
+              // component={<NavLink to="/report" />}
+            >
+              <NavLink to="/milestone-builder" />
+                Milestone Builder
             </MenuItem>
           }
           </Menu>
