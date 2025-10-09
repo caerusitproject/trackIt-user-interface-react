@@ -75,6 +75,7 @@ export default function DrawerSidebar({ handleNavigate, navigate, open, setOpen 
       dispatch(actions.closeLoader());
       dispatch(actions.openSnackbar({ message: err?.message, status: "error" }));
     }
+    
   };
 
   // Logout trigger with confirmation modal
