@@ -3,7 +3,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import * as actions from "../actions"
+import * as actions from "../stores/actions"
 
 export default function SuccessFailureSnackbar() {
     const dispatch=useDispatch();

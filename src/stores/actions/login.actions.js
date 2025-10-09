@@ -4,6 +4,7 @@ const CLOSE_SNACK_BAR = 'CLOSE_SNACK_BAR';
 const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 const LOGOUT = 'LOGOUT';
 const TOGGLE_SIDE_NAVBAR = 'TOGGLE_SIDE_NAVBAR';
+const OPEN_SIDE_DRAWER = 'OPEN_SIDE_DRAWER';
 
 
 export const openSnackbar=(data)=>{
@@ -45,6 +46,15 @@ export const logout = ()=>{
      return(dispatch=>{
         dispatch({
             type:LOGOUT,
+        })
+    })
+}  
+
+export const openSideDrawer = (message,toggle)=>{
+     return(dispatch=>{
+        dispatch({
+            type:OPEN_SIDE_DRAWER,
+            payload:{message:message,toggle:toggle}
         })
     })
 }

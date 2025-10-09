@@ -1,0 +1,108 @@
+.form-builder-container {
+  background: #fafafa;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 30%;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  padding: 16px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.preview-panel {
+  flex: 1;
+  padding: 24px;
+  background: #fefefe;
+}
+
+.preview-title {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.tabs {
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.field-btn {
+  margin: 6px 0 !important;
+  text-transform: none !important;
+}
+
+.field-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.field-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.template-preview {
+  background: #f9f9f9;
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.save-btn {
+  margin-top: 12px !important;
+  background: #1976d2 !important;
+}
+
+.modal-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.template-card {
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: 8px !important;
+}
+
+.template-title {
+  font-weight: 600;
+}
+
+.template-meta {
+  color: #888;
+}
+
+.template-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.field-chip {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin: 2px 0;
+}

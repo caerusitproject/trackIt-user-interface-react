@@ -1,685 +1,759 @@
 import React, { useState } from "react";
-import './sidebar.css';
 import {
+  Box,
+  Typography,
   TextField,
-  Button,
-  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  AppBar,
+  Tabs,
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Paper,
   Select,
   FormControl,
   InputLabel,
-  Box,
-  Typography,
+  MenuItem,
+  IconButton,
   Card,
   CardContent,
+  Grid,
+  Button,
+  Tooltip,
   Divider,
-  IconButton,
-  Paper,
+  Chip,
+  Alert,
+  useTheme,
+  useMediaQuery,
+  Slider
 } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { Icon } from "@iconify/react";
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import ContactPageIcon from '@mui/icons-material/ContactPage';
-import Chip from '@mui/material/Chip';
-import DoneIcon from '@mui/icons-material/Done';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import ArrowDropDownCircleIcon from '@mui/icons-material/ArrowDropDownCircle';
-import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
+import {
+  Delete,
+  ArrowUpward,
+  ArrowDownward,
+  TextFields,
+  Email,
+  CalendarToday,
+  Description,
+  ListAlt,
+  Add,
+  Dashboard,
+  Settings,
+  Visibility,
+  ContentCopy,
+  LibraryAdd,
+  AspectRatio,
+  ViewColumn,
+  ViewStream
+} from "@mui/icons-material";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import DialogueFormBuilder from "./DialogueFormBuilder";
 
+// Create a custom theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#6366f1',
+    },
+    secondary: {
+      main: '#ec4899',
+    },
+    background: {
+      default: '#f8fafc',
+      paper: '#ffffff',
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h6: {
+      fontWeight: 600,
+    },
+  },
+});
 
-export default function DynamicFormBuilder() {
-  const [templateName, setTemplateName] = useState("");
+const fieldTypes = [
+  { type: "Text", icon: <TextFields />, color: "#3b82f6" },
+  { type: "Email", icon: <Email />, color: "#ec4899" },
+  { type: "Textarea", icon: <Description />, color: "#10b981" },
+  { type: "Select", icon: <ListAlt />, color: "#f59e0b" },
+  { type: "Date", icon: <CalendarToday />, color: "#8b5cf6" },
+];
+
+export default function FormBuilder() {
   const [fields, setFields] = useState([]);
-  const [formData, setFormData] = useState({});
-  const [pendingType, setPendingType] = useState(null);
-  const [fieldLabel, setFieldLabel] = useState("");
-  const [dropdownOptions, setDropdownOptions] = useState("");
-  const [visibilityType, setVisibilityType] = useState("");
-  const [pendingHeaderId, setPendingHeaderId] = useState(null);
-  const [savedTemplates, setSavedTemplates] = useState([]);
+  const [selectedField, setSelectedField] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [currentTemplateFields, setCurrentTemplateFields] = useState([]);
+  const [templateName, setTemplateName] = useState("");
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [copiedFieldId, setCopiedFieldId] = useState(null);
+  const [formLayout, setFormLayout] = useState({
+    direction: "column",
+    spacing: 2,
+    alignItems: "stretch"
+  });
+  const theme = useTheme();
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const [groupedCountFields, setGroupedCountFields] = useState(0);
-  const [grouping, setGrouping] = useState({
-    groupFields:[],ungroupFields:[]
-  })
-
-  React.useEffect(() => {
-  const headers = fields.filter((field) => field.fieldtype === "header");
-
-  const groupedFields = headers.map((header) => ({
-    header,
-    fields: fields.filter(
-      (field) => field.headerId === header.id && field.fieldtype !== "header"
-    ),
-  }));
-
-  const ungroupedFields = fields.filter(
-    (field) => !field.headerId && field.fieldtype !== "header"
-  );
-
-  setGrouping({...grouping,groupFields: groupedFields,ungroupFields: ungroupedFields });
-}, [fields]);
-
-
-  const handleAddFieldClick = (type, headerId = null,groupedStatus) => {
-    setPendingType(type);
-    setFieldLabel("");
-    setDropdownOptions("");
-    setVisibilityType("");
-    setPendingHeaderId(headerId);
-  };
-
-  const handleConfirmAdd = () => {
-    if (!fieldLabel.trim()) return;
-
+  // Add field with default layout configuration
+  const addField = (type, toTemplate = false) => {
     const newField = {
       id: Date.now(),
-      fieldtype: pendingType,
-      label: fieldLabel,
-      visibility: visibilityType,
-      headerId: pendingType === "header" ? null : pendingHeaderId,
+      type,
+      label: `${type} Field`,
+      required: false,
+      placeholder: `Enter ${type.toLowerCase()}`,
+      options: type === "Select" ? ["Option 1", "Option 2"] : [],
+      layout: {
+        width: "100%",
+        flex: 1,
+        direction: "vertical"
+      }
+    };
+    
+    if (toTemplate) {
+      setCurrentTemplateFields([...currentTemplateFields, newField]);
+    } else {
+      setFields([...fields, newField]);
+      setSelectedField(newField);
+    }
+  };
+
+  // Duplicate field
+  const duplicateField = (field) => {
+    const duplicatedField = {
+      ...field,
+      id: Date.now(),
+      label: `${field.label} (Copy)`
+    };
+    setFields([...fields, duplicatedField]);
+    setSelectedField(duplicatedField);
+    setCopiedFieldId(duplicatedField.id);
+    setTimeout(() => setCopiedFieldId(null), 2000);
+  };
+
+  // Update field config
+  const updateField = (key, value) => {
+    const updated = fields.map((f) =>
+      f.id === selectedField.id ? { ...f, [key]: value } : f
+    );
+    setFields(updated);
+    setSelectedField({ ...selectedField, [key]: value });
+  };
+
+  // Update field layout
+  const updateFieldLayout = (key, value) => {
+    const updated = fields.map((f) =>
+      f.id === selectedField.id 
+        ? { 
+            ...f, 
+            layout: { ...f.layout, [key]: value } 
+          } 
+        : f
+    );
+    setFields(updated);
+    setSelectedField({ 
+      ...selectedField, 
+      layout: { ...selectedField.layout, [key]: value } 
+    });
+  };
+
+  // Remove field
+  const removeField = (id) => {
+    const updated = fields.filter(f => f.id !== id);
+    setFields(updated);
+    if (selectedField && selectedField.id === id) {
+      setSelectedField(updated.length > 0 ? updated[0] : null);
+    }
+  };
+
+  // Move field up/down
+  const moveField = (index, direction) => {
+    const updated = [...fields];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= updated.length) return;
+    [updated[index], updated[targetIndex]] = [
+      updated[targetIndex],
+      updated[index],
+    ];
+    setFields(updated);
+  };
+
+  // Render field input based on type
+  const renderFieldInput = (field) => {
+    const commonProps = {
+      fullWidth: true,
+      size: "small",
+      placeholder: field.placeholder,
+      disabled: true,
+      variant: "outlined"
     };
 
-    if (pendingType === "dropdown") {
-      newField.options = dropdownOptions
-        .split(",")
-        .map((opt) => opt.trim())
-        .filter(Boolean);
-    }
-
-    setFields([...fields, newField]);
-    setPendingType(null);
-    setPendingHeaderId(null);
-  };
-
-  const handleChange = (id, value) => {
-    setFormData({ ...formData, [id]: value });
-  };
-
-  const handleDelete = (id)=>{
-    const index=fields.findIndex((ele)=> ele.id == id);
-    fields.splice(index,1);
-    setFields([...fields])
-  }
-
-  const handleDeleteGroupedFields = (fieldId, headerId) => {
-  // Remove the grouped field
-  const updatedFields = fields.filter((f) => f.id !== fieldId);
-
-  // Check if header has any children left
-  const hasChildren = updatedFields.some(
-    (f) => f.headerId === headerId && f.fieldtype !== "header"
-  );
-
-  let finalFields = [...updatedFields];
-  if (!hasChildren) {
-    // Remove the header itself
-    finalFields = finalFields.filter((f) => f.id !== headerId);
-  }
-
-  setFields(finalFields);
-};
-
-
-  const handleSubmit = () => {
-  let dumpArr = []
-  const headers = fields.filter((field) => field.fieldtype === "header");
-  const groupedFields = headers.map((header) => ({
-    templateId: header.id,
-    type: 'component' ,
-    headerLabel: header.label,
-    fields: fields.filter((field) => field.headerId === header.id && field.type !== "header"),
-  }));
-
-   const ungroupedFields = fields
-    .filter((field) => field.headerId == null && field.fieldtype !== "header")
-    .map((item)=>({
-      ...item
-    }))
-    dumpArr.push({
-      type:'element',
-      fields:ungroupedFields,
-      // ...groupedFields[0]
-    })
-    let dumpArr1=[...dumpArr,...groupedFields]
-  // Save each grouped section as a template
-  // setSavedTemplates((prev) => [
-  //   ...prev,
-  //   ...groupedFields.map((g) => ({
-  //     id: Date.now() + Math.random(),
-  //     name: g.headerLabel, // Vendor name or header label
-  //     header: g.headerLabel,
-  //     fields: g.fields,
-  //   })),
-  // ]);
-
-  console.log("Saved templates:",
-dumpArr1);
-
-  // alert("Templates saved!");
-};
-
-const handleSaveTemplate = (headerId) => {
-  const header = fields.find((f) => f.id === headerId && f.fieldtype === "header");
-  if (!header) return;
-
-  const groupFields = fields.filter(
-    (f) => f.headerId === headerId && f.fieldtype !== "header"
-  );
-
-  const newTemplate = {
-    id: Date.now() + Math.random(),
-    name: header.label,   // Template name = header label
-    header: header.label,
-    fields: groupFields,
-  };
-
-  setSavedTemplates((prev) => [...prev, newTemplate]);
-
-  alert(`Template "${header.label}" saved!`);
-};
-
-
-  // const handleSubmit = () => {
-  //   // Format form data for submission
-  //   const formatted = Object.fromEntries(
-  //     Object.entries(formData).map(([k, v]) => [
-  //       k,
-  //       v && v.$d ? dayjs(v).format("YYYY-MM-DD") : v,
-  //     ])
-  //   );
-
-  //   // Group fields by headers for submission output
-  //   const headers = fields.filter((field) => field.type === "header");
-  //   const groupedFields = headers.map((header) => ({
-  //     header: header.label,
-  //     fields: fields
-  //       .filter((field) => field.headerId === header.id && field.type !== "header")
-  //   }));
-  //   const ungroupedFields = fields
-  //     .filter((field) => field.headerId == null && field.type !== "header");
-    
-
-  //   // Construct submission output
-  //   console.log('output____',groupedFields,ungroupedFields,fields);
-  // };
-  
-const headers = fields.filter((field) => field.fieldtype === "header");
-
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Paper elevation={6}>
-          <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 3,
-          p: 4,
-          flexWrap: "wrap",
-        }}
-      >
-         <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Select Saved Template</InputLabel>
-            <Select
-              onChange={(e) => {
-                const selectedTemplate = savedTemplates.find((t) => t.id === e.target.value);
-                if (selectedTemplate) {
-                  // create a new header + fields with fresh IDs
-                  const newHeaderId = Date.now();
-                  const newHeader = {
-                    id: newHeaderId,
-                    fieldtype: "header",
-                    // type: "header",
-                    label: selectedTemplate.header,
-                  };
-
-                  const newFields = selectedTemplate.fields.map((f) => ({
-                    ...f,
-                    id: Date.now() + Math.random(),
-                    headerId: newHeaderId,
-                  }));
-
-                  setFields((prev) => [...prev, newHeader, ...newFields]);
-                }
-              }}
-            >
-              {savedTemplates.map((template) => (
-                <MenuItem key={template.id} value={template.id}>
-                  {template.name}
+    switch (field.type) {
+      case "Text":
+        return <TextField {...commonProps} />;
+      case "Email":
+        return <TextField {...commonProps} type="email" />;
+      case "Textarea":
+        return <TextField {...commonProps} multiline rows={3} />;
+      case "Select":
+        return (
+          <FormControl fullWidth size="small">
+            <Select {...commonProps} value="">
+              {field.options?.map((option, idx) => (
+                <MenuItem key={idx} value={option}>
+                  {option}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+        );
+      case "Date":
+        return <TextField {...commonProps} type="date" InputLabelProps={{ shrink: true }} />;
+      default:
+        return <TextField {...commonProps} />;
+    }
+  };
 
-        {/* === Field Palette === */}
-        <Card sx={{ width: 410, borderRadius: 4 }} elevation={2}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom textAlign="center">
-              Field Palette
+  // Flexible grouping logic that supports 2 or 3 fields per row based on widths
+  const groupFieldsByRow = (fields) => {
+    const groups = [];
+    let currentGroup = [];
+    let currentRowWidth = 0;
+    
+    fields.forEach((field, index) => {
+      const isHorizontal = field.layout?.direction === "horizontal";
+      const fieldWidth = field.layout?.width || "100%";
+      
+      // Calculate approximate width percentage
+      let widthPercent = 100;
+      if (fieldWidth.includes('%')) {
+        widthPercent = parseInt(fieldWidth);
+      } else if (fieldWidth === 'auto') {
+        widthPercent = 100; // Auto takes full available space
+      }
+      
+      if (isHorizontal) {
+        // Check if adding this field would exceed 100% width (with some tolerance)
+        if (currentRowWidth + widthPercent <= 110) { // 110% tolerance for gaps
+          currentGroup.push(field);
+          currentRowWidth += widthPercent;
+        } else {
+          // Start new row
+          if (currentGroup.length > 0) {
+            groups.push(currentGroup);
+          }
+          currentGroup = [field];
+          currentRowWidth = widthPercent;
+        }
+      } else {
+        // Vertical field - push current group and start new one
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+          currentGroup = [];
+          currentRowWidth = 0;
+        }
+        groups.push([field]);
+      }
+    });
+    
+    // Push any remaining fields in current group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
+  // Get container style based on form layout
+  const getFormContainerStyle = () => ({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: formLayout.spacing,
+    minWidth: 'max-content'
+  });
+
+  // Get field style based on field layout
+  const getFieldStyle = (field) => ({
+    flex: '0 0 auto',
+    width: field.layout?.width || '100%',
+    minWidth: field.layout?.width || '100%',
+    boxSizing: 'border-box'
+  });
+
+  // Get row container style for horizontal fields
+  const getRowContainerStyle = () => ({
+    display: 'flex',
+    flexDirection: 'row',
+    gap: formLayout.spacing,
+    alignItems: 'flex-start',
+    flexWrap: 'nowrap',
+    width: '100%',
+    minWidth: 'max-content',
+    overflow: 'visible'
+  });
+
+  const fieldGroups = groupFieldsByRow(fields);
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Box sx={{ 
+        p: { xs: 1, md: 2 }, 
+        backgroundColor: 'background.default', 
+        minHeight: '100vh',
+        overflow: 'auto'
+      }}>
+        <Paper 
+          elevation={2} 
+          sx={{ 
+            overflow: 'visible',
+            borderRadius: 3
+          }}
+        >
+          {/* Header */}
+          <Box sx={{ 
+            p: 2, 
+            backgroundColor: '#ec9531ff', 
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Dashboard sx={{ fontSize: 28 }} />
+            <Typography variant="h5" fontWeight="600">
+              Form Builder
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Typography sx={{fontSize:'22px',color:'rgba(122, 122, 121, 0.89)',mb:1,p:0.5}}>Building Elements:</Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<Icon icon="mdi:text" />}
-                onClick={() => handleAddFieldClick("text")}
-              >
-                Text Field
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Icon icon="mdi:calendar" />}
-                onClick={() => handleAddFieldClick("date")}
-              >
-                Date Picker
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Icon icon="mdi:form-dropdown" />}
-                onClick={() => handleAddFieldClick("dropdown")}
-              >
-                Dropdown
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<ContactPageIcon />}
-                onClick={() => handleAddFieldClick("contact")}
-              >
-                Contact Number
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Icon icon="mdi:header" />}
-                onClick={() => handleAddFieldClick("header")}
-              >
-                Header
-              </Button>
-               <Typography sx={{fontSize:'22px',color:'rgba(122, 122, 121, 0.89)'}}>Building Templates:</Typography>
-              {headers.map((header) => (
-                <Box key={header.id} sx={{ pl: 2 }}>
-                  <Typography variant="subtitle2">{header.label}</Typography>
-                  <Box sx={{ display: "flex",justifyContent:"center", flexDirection: "column", gap: 1, pl: 2 }}>
-                     <Chip
-                         label="Text Field"
-                         onClick={() => handleAddFieldClick("text", header.id,"grouped")}
-                         icon={<TextSnippetIcon />}
-                         
-                      />
+          </Box>
 
-                       <Chip
-                         label="Date Picker"
-                         onClick={() => handleAddFieldClick("date", header.id,"grouped")}
-                         icon={<CalendarMonthIcon />}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            height: { md: 'calc(100vh - 160px)' },
+            overflow: 'hidden'
+          }}>
+            {/* Left Panel → Field Library */}
+            <Box sx={{ 
+              width: { xs: '100%', md: 280 }, 
+              flexShrink: 0,
+              p: 2,
+              borderRight: { md: '1px solid #e2e8f0' },
+              backgroundColor: 'white',
+              overflow: 'auto'
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LibraryAdd /> Field Library
+              </Typography>
+              
+              <Grid container spacing={1.5} sx={{ mb: 3 }}>
+                {fieldTypes.map((field) => (
+                  <Grid item xs={6} key={field.type}>
+                    <Tooltip title={`Add ${field.type} field`}>
+                      <Card
+                        onClick={() => addField(field.type)}
+                        sx={{
+                          p: 1.5,
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          transition: '0.2s',
+                          border: '1px solid #e2e8f0',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: 3,
+                            borderColor: field.color
+                          }
+                        }}
+                      >
+                        <Box sx={{ color: field.color, fontSize: 28, mb: 0.5 }}>
+                          {field.icon}
+                        </Box>
+                        <Typography variant="body2" fontWeight="500">
+                          {field.type}
+                        </Typography>
+                      </Card>
+                    </Tooltip>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  Spacing: {formLayout.spacing}
+                </Typography>
+                <Slider
+                  value={formLayout.spacing}
+                  onChange={(e, newValue) => setFormLayout({...formLayout, spacing: newValue})}
+                  min={0}
+                  max={8}
+                  step={1}
+                  size="small"
+                />
+              </Box>
+
+              <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
+                Supports 2 or 3 fields per row based on width settings
+              </Alert>
+              
+              <Button
+                variant="outlined"
+                color="primary"
+                fullWidth
+                startIcon={<ContentCopy />}
+                onClick={() => setTemplateModalOpen(true)}
+                sx={{ mb: 2 }}
+              >
+                Templates
+              </Button>
+              
+              {fields.length > 0 && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  startIcon={<Delete />}
+                  onClick={() => {
+                    setFields([]);
+                    setSelectedField(null);
+                  }}
+                >
+                  Clear All
+                </Button>
+              )}
+            </Box>
+
+            {/* Middle Panel → Form Preview */}
+            <Box sx={{ 
+              flexGrow: 1, 
+              p: 2, 
+              overflow: 'auto',
+              backgroundColor: '#f8fafc'
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Visibility /> Form Configuration
+              </Typography>
+              
+              <Paper sx={{ 
+                p: 3, 
+                backgroundColor: 'white',
+                minHeight: 300,
+                overflow: 'visible',
+                minWidth: 'min-content'
+              }}>
+                {fields.length === 0 ? (
+                  <Box sx={{ 
+                    textAlign: 'center', 
+                    py: 8,
+                    color: 'text.secondary'
+                  }}>
+                    <Typography variant="h6" gutterBottom>
+                      No fields added yet
+                    </Typography>
+                    <Typography variant="body2">
+                      Drag fields from the library or use templates to get started
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={getFormContainerStyle()}>
+                    {fieldGroups.map((group, groupIndex) => (
+                      <Box 
+                        key={groupIndex}
+                        sx={group.length > 1 ? getRowContainerStyle() : { width: '100%' }}
+                      >
+                        {group.map((field, fieldIndex) => {
+                          const actualIndex = fields.findIndex(f => f.id === field.id);
+                          return (
+                            <Box 
+                              key={field.id} 
+                              onClick={() => setSelectedField(field)}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                border: '2px solid',
+                                borderColor: selectedField?.id === field.id ? 'primary.main' : 'transparent',
+                                backgroundColor: selectedField?.id === field.id ? '#f0f9ff' : 'transparent',
+                                transition: '0.2s',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  backgroundColor: '#f8fafc'
+                                },
+                                ...getFieldStyle(field)
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                <Typography variant="subtitle1" fontWeight="500">
+                                  {field.label} {field.required && <span style={{color: '#ef4444'}}>*</span>}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  {field.layout?.direction === "horizontal" && (
+                                    <Chip 
+                                      label="Sideways" 
+                                      size="small" 
+                                      color="primary" 
+                                      variant="outlined"
+                                      sx={{ fontSize: '0.6rem', height: 20 }} 
+                                    />
+                                  )}
+                                  <Chip 
+                                    label={field.type} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ fontSize: '0.7rem', height: 24 }} 
+                                  />
+                                </Box>
+                              </Box>
+                              
+                              {renderFieldInput(field)}
+                              
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5, mt: 1 }}>
+                                <Tooltip title="Move up">
+                                  <span>
+                                    <IconButton 
+                                      size="small" 
+                                      disabled={actualIndex === 0}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        moveField(actualIndex, "up");
+                                      }}
+                                    >
+                                      <ArrowUpward fontSize="small" />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                                <Tooltip title="Move down">
+                                  <span>
+                                    <IconButton 
+                                      size="small" 
+                                      disabled={actualIndex === fields.length - 1}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        moveField(actualIndex, "down");
+                                      }}
+                                    >
+                                      <ArrowDownward fontSize="small" />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                                <Tooltip title="Duplicate">
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      duplicateField(field);
+                                    }}
+                                  >
+                                    <ContentCopy fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton 
+                                    size="small" 
+                                    color="error"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeField(field.id);
+                                    }}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                              
+                              {copiedFieldId === field.id && (
+                                <Alert severity="success" sx={{ mt: 1, py: 0 }}>
+                                  Field duplicated
+                                </Alert>
+                              )}
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    ))}
+                    
+                    <Button 
+                      variant="contained" 
+                      color="success" 
+                      fullWidth 
+                      size="large"
+                      sx={{ mt: 2, flex: '0 0 auto' }}
+                    >
+                      Submit Form
+                    </Button>
+                  </Box>
+                )}
+              </Paper>
+            </Box>
+
+            {/* Right Panel → Field Configuration */}
+            <Box sx={{ 
+              width: { xs: '100%', md: 320 }, 
+              flexShrink: 0,
+              p: 2,
+              borderLeft: { md: '1px solid #e2e8f0' },
+              backgroundColor: 'white',
+              overflow: 'auto'
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Settings /> Individual Field Configurer
+              </Typography>
+              
+              {selectedField ? (
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Label"
+                    value={selectedField.label}
+                    onChange={(e) => updateField("label", e.target.value)}
+                    margin="normal"
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Placeholder"
+                    value={selectedField.placeholder}
+                    onChange={(e) => updateField("placeholder", e.target.value)}
+                    margin="normal"
+                    size="small"
+                  />
+                  
+                  {/* Field Layout Configuration */}
+                  <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AspectRatio /> Field Layout
+                  </Typography>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Field Direction</InputLabel>
+                    <Select
+                      value={selectedField.layout?.direction || "vertical"}
+                      onChange={(e) => updateFieldLayout("direction", e.target.value)}
+                      label="Field Direction"
+                    >
+                      <MenuItem value="vertical">Vertical (Stacked)</MenuItem>
+                      <MenuItem value="horizontal">Horizontal (Sideways)</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Width</InputLabel>
+                    <Select
+                      value={selectedField.layout?.width || "100%"}
+                      onChange={(e) => updateFieldLayout("width", e.target.value)}
+                      label="Width"
+                    >
+                      <MenuItem value="100%">Full Width</MenuItem>
+                      <MenuItem value="75%">75% Width</MenuItem>
+                      <MenuItem value="50%">Half Width</MenuItem>
+                      <MenuItem value="33%">One Third</MenuItem>
+                      <MenuItem value="25%">Quarter Width</MenuItem>
+                      <MenuItem value="auto">Auto</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Flex Grow: {selectedField.layout?.flex || 1}
+                    </Typography>
+                    <Slider
+                      value={selectedField.layout?.flex || 1}
+                      onChange={(e, newValue) => updateFieldLayout("flex", newValue)}
+                      min={0}
+                      max={5}
+                      step={1}
+                      size="small"
+                    />
+                  </Box>
+
+                  <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
+                    <strong>Layout Tips:</strong>
+                    <br />• 50% width = 2 fields per row
+                    <br />• 33% width = 3 fields per row  
+                    <br />• 25% width = 4 fields per row
+                  </Alert>
+                  
+                  {selectedField.type === "Select" && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" gutterBottom>
+                        Options (one per line)
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        value={selectedField.options.join("\n")}
+                        onChange={(e) => updateField("options", e.target.value.split("\n"))}
+                        size="small"
                       />
-                      
-                      <Chip
-                         label="Drop Down"
-                         onClick={() => handleAddFieldClick("dropdown", header.id,"grouped")}
-                         icon={<ArrowDropDownCircleIcon />}
+                    </Box>
+                  )}
+                  
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={selectedField.required}
+                        onChange={(e) => updateField("required", e.target.checked)}
+                        color="primary"
                       />
-                      
-                     <Chip
-                         label="Contact Number"
-                         onClick={() => handleAddFieldClick("contact", header.id,"grouped")}
-                         icon={<ContactPhoneIcon />}
-                      />
+                    }
+                    label="Required field"
+                    sx={{ mt: 2 }}
+                  />
+                  
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={() => removeField(selectedField.id)}
+                      fullWidth
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<ContentCopy />}
+                      onClick={() => duplicateField(selectedField)}
+                      fullWidth
+                    >
+                      Duplicate
+                    </Button>
                   </Box>
                 </Box>
-              ))}
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* === Preview Form === */}
-        <Card sx={{ width: 410, borderRadius: 4 }} elevation={2}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom textAlign="center">
-              Preview Form
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <TextField
-              label="Template Name"
-              fullWidth
-              sx={{ mb: 2 }}
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-            />
-
-            <Box sx={{ display: "flex",justifyContent:"center", flexDirection: "column", gap: 2, mb: 3 }}>
-             
-              {grouping.ungroupFields.map((field) => (
-                <Box key={field.id}
-                sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",  // centers horizontally
-                      gap: 1,
-                      mt: 1,
-                    }}
-                >
-                  {field.fieldtype === "text" && (
-                    <>
-                    <TextField
-                      label={field.label}
-                      fullWidth
-                      disabled={field.visibility === "disabled"}
-                      slotProps={{
-                        input: {
-                          readOnly: field.visibility === "read-only",
-                        },
-                      }}
-                      value={formData[field.id] || ""}
-                      onChange={(e) => handleChange(field.id, e.target.value)}
-                    />
-                    <IconButton 
-                       onClick={(e)=>handleDelete(field.id)}
-                     >
-                    <DeleteIcon />
-                    </IconButton>
-                    </>
-                  )}
-                  {field.fieldtype === "date" && (
-                    <>
-                    <DatePicker
-                      label={field.label}
-                      value={formData[field.id] || null}
-                      onChange={(newVal) => handleChange(field.id, newVal)}
-                      slotProps={{ textField: { fullWidth: true } }}
-                    />
-                     <IconButton 
-                       onClick={(e)=>handleDelete(field.id)}
-                     >
-                    <DeleteIcon />
-                    </IconButton>
-                     </>
-                  )}
-                  {field.fieldtype === "contact" && (
-                    <>
-                    <TextField
-                      label={field.label}
-                      type="number"
-                      fullWidth
-                      disabled={field.visibility === "disabled"}
-                      slotProps={{
-                        input: {
-                          readOnly: field.visibility === "read-only",
-                        },
-                      }}
-                      value={formData[field.id] || ""}
-                      onChange={(e) => handleChange(field.id, e.target.value)}
-                     />
-                    <IconButton 
-                      onClick={(e)=>handleDelete(field.id)}
-                     >
-                      <DeleteIcon />
-                    </IconButton>
-                    </>
-                  )}
-                  {field.fieldtype === "dropdown" && (
-                    <div sx={{display:'flex',justifyContent:"center",flexDirection:"row"}}>
-                    <FormControl>
-                      <InputLabel>{field.label}</InputLabel>
-                      <Select
-                        value={formData[field.id] || ""}
-                        onChange={(e) => handleChange(field.id, e.target.value)}
-                      >
-                        {(field.options || []).map((opt, i) => (
-                          <MenuItem key={i} value={opt}>
-                            {opt}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                     <IconButton 
-                       onClick={(e)=>handleDelete(field.id)}
-                     >
-                      <DeleteIcon />
-                    </IconButton>
-                    </FormControl>
-                    </div>
-                  )}
+              ) : (
+                <Box sx={{ 
+                  textAlign: 'center', 
+                  py: 4,
+                  color: 'text.secondary'
+                }}>
+                  <Settings sx={{ fontSize: 48, opacity: 0.5, mb: 1 }} />
+                  <Typography>
+                    Select a field to configure
+                  </Typography>
                 </Box>
-              ))}
-              {grouping.groupFields.map(({ header, fields }) => (
-                        <Box
-                          key={header.id}
-                          sx={{
-                            border: '2px solid',
-                            borderColor: "rgba(235, 137, 81, 0.89)",
-                            borderRadius: '8px',
-                            p: 2,
-                            mb: 2,
-                            position: 'relative',
-                            backgroundColor: 'background.paper',
-                          }}
-                        >
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              fontWeight: 'bold',
-                              color: "rgba(219, 130, 79, 0.89)",
-                              textAlign: 'center',
-                              position: 'absolute',
-                              top: '-12px',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              backgroundColor: 'background.paper',
-                              px: 1,
-                            }}
-                          >
-                            {header.label}
-                          </Typography>
-                          {fields && fields.length > 0 &&
-                          <IconButton
-                              variant="outlined"
-                                size="small"
-                                onClick={() => handleSaveTemplate(header.id)}
-                                sx={{ mt: 1 }}
-                          >
-                              <SaveIcon />
-
-                          </IconButton>
-                              
-                          }
-                          
-
-                          <Box sx={{ mt: 2, pl: 1, pr: 1 }}>
-                            {fields.map((field) => (
-                              <Box
-                                key={field.id}
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                  mt: 1,
-                                }}
-                              >
-                                {field.fieldtype === "text" && (
-                                  <div style={{display:'flex',justifyContent:'center'}}>
-                                    <div>
-                                    <TextField
-                                      label={field.label}
-                                      fullWidth
-                                      disabled={field.visibility === "disabled"}
-                                      slotProps={{
-                                        input: {
-                                          readOnly: field.visibility === "read-only",
-                                        },
-                                      }}
-                                      value={formData[field.id] || ""}
-                                      onChange={(e) => handleChange(field.id, e.target.value)}
-                                    />
-                                    </div>
-                                    <div>
-
-                                    <IconButton
-                                      onClick={(e) => {
-                                        // setGroupedCountFields((prev) => prev - 1);
-                                        handleDeleteGroupedFields(field.id, header.id);
-                                      }}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                    </div>
-                                  </div>
-                                )}
-                                {field.fieldtype === "date" && (
-                                  <>
-                                    <DatePicker
-                                      label={field.label}
-                                      value={formData[field.id] || null}
-                                      onChange={(newVal) => handleChange(field.id, newVal)}
-                                      slotProps={{ textField: { fullWidth: true } }}
-                                    />
-                                    <IconButton
-                                      onClick={(e) => {
-                                        // setGroupedCountFields((prev) => prev - 1);
-                                        handleDeleteGroupedFields(field.id, header.id);
-                                      }}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </>
-                                )}
-                                {field.fieldtype === "contact" && (
-                                  <>
-                                    <TextField
-                                      label={field.label}
-                                      type="number"
-                                      fullWidth
-                                      disabled={field.visibility === "disabled"}
-                                      slotProps={{
-                                        input: {
-                                          readOnly: field.visibility === "read-only",
-                                        },
-                                      }}
-                                      value={formData[field.id] || ""}
-                                      onChange={(e) => handleChange(field.id, e.target.value)}
-                                    />
-                                    <IconButton
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        // setGroupedCountFields((prev) => prev - 1);
-                                        handleDeleteGroupedFields(field.id, header.id);
-                                      }}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </>
-                                )}
-                                {field.fieldtype === "dropdown" && (
-                                  <>
-                                    <FormControl fullWidth>
-                                      <InputLabel>{field.label}</InputLabel>
-                                      <Select
-                                        value={formData[field.id] || ""}
-                                        onChange={(e) => handleChange(field.id, e.target.value)}
-                                      >
-                                        {(field.options || []).map((opt, i) => (
-                                          <MenuItem key={i} value={opt}>
-                                            {opt}
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
-                                    </FormControl>
-                                    <IconButton
-                                      onClick={(e) => {
-                                        // setGroupedCountFields((prev) => prev - 1);
-                                        handleDeleteGroupedFields(field.id, header.id);
-                                      }}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </>
-                                )}
-                              </Box>
-                            ))}
-                          </Box>
-                        </Box>
-                ))}  
+              )}
             </Box>
+          </Box>
+        </Paper>
 
-            {fields.length > 0 && (
-              <Button
-                variant="contained"
-                sx={{color:"white",background:"rgba(241, 125, 58, 0.89)"}}
-                onClick={handleSubmit}
-                fullWidth
-              >
-                Submit Form
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* === Config Panel === */}
-        <Card sx={{ width: 410, borderRadius: 4 }} elevation={2}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom textAlign="center">
-              {pendingType
-                ? `Configure ${pendingType.charAt(0).toUpperCase() + pendingType.slice(1)}`
-                : "Select a Field"}
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            {pendingType ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <TextField
-                  label={pendingType === "header" ? "Header Text" : "Field Label"}
-                  fullWidth
-                  value={fieldLabel}
-                  onChange={(e) => setFieldLabel(e.target.value)}
-                />
-                {pendingType !== "header" && (
-                  <FormControl>
-                    <FormLabel id="demo-row-radio-buttons-group-label">Visibility Type</FormLabel>
-                    <RadioGroup
-                      row
-                      onChange={(e) => setVisibilityType(e.target.value)}
-                    >
-                      <FormControlLabel value="read-only" control={<Radio />} label="Read Only" />
-                      <FormControlLabel value="disabled" control={<Radio />} label="Disabled" />
-                    </RadioGroup>
-                  </FormControl>
-                )}
-                {pendingType === "dropdown" && (
-                  <TextField
-                    label="Dropdown Options (comma separated)"
-                    fullWidth
-                    value={dropdownOptions}
-                    onChange={(e) => setDropdownOptions(e.target.value)}
-                  />
-                )}
-                <Button
-                  variant="contained"
-                  onClick={handleConfirmAdd}
-                  disabled={!fieldLabel.trim()}
-                >
-                  Add to Form
-                </Button>
-              </Box>
-            ) : (
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                textAlign="center"
-              >
-                Choose a field type from the palette to configure
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
+        {/* Template Manager Modal - */}
+        <DialogueFormBuilder
+          fieldTypes={fieldTypes}
+          open={templateModalOpen}
+          setTemplateModalOpen={setTemplateModalOpen}
+          fields={fields}
+          setFields={setFields}
+          currentTemplateFields={currentTemplateFields}
+          setCurrentTemplateFields={setCurrentTemplateFields}
+          templates={templates}
+          setTemplates={setTemplates}
+          templateName={templateName}
+          setTemplateName={setTemplateName}
+          renderFieldInput={renderFieldInput}
+        />
       </Box>
-      </Paper>
-      
-    </LocalizationProvider>
+    </ThemeProvider>
   );
 }

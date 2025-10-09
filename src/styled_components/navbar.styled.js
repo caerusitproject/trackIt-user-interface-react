@@ -1,6 +1,7 @@
 import { alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 import styled from "styled-components";
+import { Button } from '@mui/material';
 
 export const NavbarContainer = styled.nav`
   border: 2px solid #222;
@@ -142,3 +143,67 @@ export const SearchIconWrapper = styled('div')(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
 }));
+
+
+
+// Styled components
+export const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+export const OnlineBadge = styled.span`
+  background-color: #28a745;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  display: inline-block;
+  margin-top: 4px;
+`;
+
+export const LogoutButton = styled(Button)`
+  && {
+    color: #dc3545;
+    text-transform: none;
+    font-weight: 500;
+  }
+`;
+
+export const Option = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const ColorRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+`;
+
+export const ColorCircle = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: ${(p) => p.color};
+  border: ${(p) => (p.active ? "3px solid #000" : "2px solid #ccc")};
+  cursor: pointer;
+`;
+
+export const ResetButton = styled(Button)`
+  && {
+    text-transform: none;
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+`;

@@ -18,3 +18,8 @@
 .pro-sidebar .ps-menu-button:hover {
   background-color: #f5e5b8; /* optional hover effect */
 }
+
+/* .MuiBox-root{
+  display: flex;
+  justify-content: center;
+} */

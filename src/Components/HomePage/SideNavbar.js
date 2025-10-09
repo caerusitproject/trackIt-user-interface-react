@@ -18,6 +18,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import FlagIcon from "@mui/icons-material/Flag";
 import {useSelector} from "react-redux";
 import { Tooltip } from "@mui/material";
+import BuildIcon from '@mui/icons-material/Build';
 import { NavLink, useLocation } from "react-router-dom";
 
 export default function SideNavbar() {
@@ -111,20 +112,20 @@ export default function SideNavbar() {
                 <Tooltip  placement="right" title="Asset" arrow>
                   <MenuItem
                     icon={<AttachMoneyIcon />}
-                    active={location.pathname === "/asset"}
+                    active={location.pathname === "/assets"}
                     // component={<NavLink to="/asset" />}
                   >
-                    <NavLink to="/asset" />
+                    <NavLink to="/assets" />
                     Asset
                   </MenuItem>
                   </Tooltip>
                     :
                     <MenuItem
                         icon={<AttachMoneyIcon />}
-                        active={location.pathname === "/asset"}
+                        active={location.pathname === "/assets"}
                         // component={<NavLink to="/asset" />}
                       >
-                    <NavLink to="/asset" />
+                    <NavLink to="/assets" />
                       Asset
                     </MenuItem>
                    }
@@ -147,6 +148,28 @@ export default function SideNavbar() {
             >
               <NavLink to="/report" />
               Report
+            </MenuItem>
+          }
+
+          {collapsed && Boolean(collapsed) == true ?
+          <Tooltip  placement="right" title="Asset Menu Builder" arrow>
+            <MenuItem
+              icon={<BuildIcon />}
+              active={location.pathname === "/asset-menu-builder"}
+              // component={<NavLink to="/report" />}
+            >
+              <NavLink to="/asset-menu-builder" />
+              Asset Menu Builder
+            </MenuItem>
+            </Tooltip>
+          :
+             <MenuItem
+              icon={<BuildIcon />}
+              active={location.pathname === "/asset-menu-builder"}
+              // component={<NavLink to="/report" />}
+            >
+              <NavLink to="/asset-menu-builder" />
+              Asset Menu Builder
             </MenuItem>
           }
           </Menu>
