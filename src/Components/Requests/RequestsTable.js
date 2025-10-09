@@ -27,6 +27,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
+import jsonData from "../../db.json"
 import { HeaderBar, Toolbar, YellowDot } from "../../styled_components/requesttable.styled";
 
 
@@ -97,7 +98,8 @@ export default function RequestsTable() {
       if (!resp.ok) throw new Error("Failed to fetch data");
 
       const json = await resp.json();
-      setRows(json);
+      // setRows(json);
+      setRows(jsonData.posts);
 
       const total = resp.headers.get("X-Total-Count") || json.total || 15;
       setTotalCount(Number(total));
@@ -116,7 +118,14 @@ export default function RequestsTable() {
 
   // useEffect(() => {
   //   fetchPage(pagination.pageIndex, pagination.pageSize);
+  //    setRows(jsonData.posts);
   // }, [pagination]);
+
+  useEffect(() => {
+    // fetchPage(pagination.pageIndex, pagination.pageSize);
+     setRows(jsonData.posts);
+     console.log('json data____',jsonData.posts)
+  }, [jsonData]);
 
   // ✅ Define columns
   const columns = useMemo(

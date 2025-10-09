@@ -1,0 +1,16 @@
+{
+    "posts":[
+        {"id":1,"firstName":"komal","lastName":"singh"},
+        {"id":2,"firstName":"debanjan","lastName":"sinha"},
+        {"id":3,"firstName":"tanmay","lastName":"kumar saha"},
+        {"id":4,"firstName":"honda","lastName":"kumar saha"},
+        {"id":5,"firstName":"civic","lastName":"kumar saha"},
+        {"id":6,"firstName":"clirnet","lastName":"kumar saha"},
+        {"id":7,"firstName":"clirnet1","lastName":"kumar saha"},
+        {"id":8,"firstName":"clirnet2","lastName":"kumar saha"},
+        {"id":9,"firstName":"clirnet3","lastName":"kumar saha"},
+        {"id":10,"firstName":"clirnet4","lastName":"kumar saha"},
+        {"id":11,"firstName":"clirnet5","lastName":"kumar saha"},
+        {"id":12,"firstName":"clirnet6","lastName":"kumar saha"}
+    ]
+}
