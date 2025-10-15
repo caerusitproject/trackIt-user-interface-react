@@ -28,7 +28,8 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
 import jsonData from "../../db.json"
-import { HeaderBar, Toolbar, YellowDot } from "../../styled_components/requesttable.styled";
+import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper } from "../../styled_components/requesttable.styled";
+import { useSelector,useDispatch } from "react-redux";
 
 
 function TablePaginationActions(props) {
@@ -76,7 +77,7 @@ TablePaginationActions.propTypes = {
 
 export default function RequestsTable() {
   const navigate = useNavigate();
-
+  const {ticketObj} = useSelector((state)=> state.ticket)
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -87,28 +88,36 @@ export default function RequestsTable() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // ✅ Fetch data with pagination
-  const fetchPage = async (page, pageSize) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const offset = page * pageSize;
-      const resp = await fetch(
-        `http://localhost:3000/posts?_start=${offset}&_limit=${pageSize}`
-      );
-      if (!resp.ok) throw new Error("Failed to fetch data");
+  // const fetchPage = async (page, pageSize) => {
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const offset = page * pageSize;
+  //     const resp = await fetch(
+  //       `http://localhost:3000/posts?_start=${offset}&_limit=${pageSize}`
+  //     );
+  //     if (!resp.ok) throw new Error("Failed to fetch data");
 
-      const json = await resp.json();
-      // setRows(json);
-      setRows(jsonData.posts);
+  //     const json = await resp.json();
+  //     // setRows(json);
+  //     setRows(jsonData.posts);
 
-      const total = resp.headers.get("X-Total-Count") || json.total || 15;
-      setTotalCount(Number(total));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  //     const total = resp.headers.get("X-Total-Count") || json.total || 15;
+  //     setTotalCount(Number(total));
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    if(ticketObj && ticketObj instanceof Object){
+      setRows([...rows,ticketObj])
+      setTotalCount((prev) => prev + 1);
     }
-  };
+  }, [ticketObj])
+  
 
   // MRT handles pagination, so listen to page changes
   const [pagination, setPagination] = useState({
@@ -121,17 +130,17 @@ export default function RequestsTable() {
   //    setRows(jsonData.posts);
   // }, [pagination]);
 
-  useEffect(() => {
-    // fetchPage(pagination.pageIndex, pagination.pageSize);
-     setRows(jsonData.posts);
-     console.log('json data____',jsonData.posts)
-  }, [jsonData]);
+  // useEffect(() => {
+  //   // fetchPage(pagination.pageIndex, pagination.pageSize);
+  //    setRows(jsonData.posts);
+  //    console.log('json data____',jsonData.posts)
+  // }, [jsonData]);
 
   // ✅ Define columns
-  const columns = useMemo(
+const columns = useMemo(
     () => [
       {
-        id: "select", // for checkbox selection
+        id: "select",
         header: "",
         enableColumnActions: false,
         enableSorting: false,
@@ -140,6 +149,7 @@ export default function RequestsTable() {
       {
         accessorKey: "mailIcon",
         header: "",
+        size: 50, // Force min sizes to expand table
         Cell: () => (
           <IconButton size="small">
             <MailIcon fontSize="small" />
@@ -149,6 +159,7 @@ export default function RequestsTable() {
       {
         accessorKey: "editIcon",
         header: "",
+        size: 50,
         Cell: () => (
           <IconButton size="small">
             <EditIcon fontSize="small" />
@@ -158,6 +169,7 @@ export default function RequestsTable() {
       {
         accessorKey: "noteIcon",
         header: "",
+        size: 50,
         Cell: () => (
           <IconButton size="small">
             <SummarizeIcon fontSize="small" />
@@ -167,6 +179,7 @@ export default function RequestsTable() {
       {
         accessorKey: "id",
         header: "Id",
+        size: 100,
         Cell: ({ cell }) => (
           <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <YellowDot />
@@ -175,16 +188,36 @@ export default function RequestsTable() {
         ),
       },
       {
-        accessorKey: "firstName",
-        header: "First Name",
+        accessorKey: "subject",
+        header: "Subject",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
       },
       {
-        accessorKey: "lastName",
-        header: "Last Name",
+        accessorKey: "requester",
+        header: "Requestor",
+        size: 150,
+      },
+      {
+        accessorKey: "assignee",
+        header: "Assigned To",
+        size: 150,
+      },
+      {
+        accessorKey: "startDate",
+        header: "Start Date",
+        size: 120,
+      },
+      {
+        accessorKey: "endDate",
+        header: "End Date",
+        size: 120,
       },
     ],
     []
   );
+
+  console.log('table creation__',rows,ticketObj)
 
  const handleChangePage = (_, newPage) => {
   setPagination((prev) => ({ ...prev, pageIndex: newPage }));
@@ -272,28 +305,45 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
       </Toolbar>
 
       {/* ✅ Material React Table */}
-      <MaterialReactTable
-        columns={columns}
-        data={rows}
-        state={{
-          isLoading: loading,
-          pagination,
-          showAlertBanner: !!error,
-          showProgressBars: loading,
-        }}
-        enableRowSelection
-        enablePagination={false}
-        manualPagination
-        rowCount={totalCount}
-        // onPaginationChange={setPagination}
-        muiTableBodyRowProps={({ row }) => ({
-          onClick: () => navigate(`/request/ticket/${row.original.id}`),
-          sx: { cursor: "pointer" },
-        })}
-        muiToolbarAlertBannerProps={
-          error ? { color: "error", children: error } : undefined
-        }
-      />
+
+<Box sx={{ overflowX: 'auto', maxWidth: '70vw', display: 'block' }}>  
+  <MaterialReactTable
+    columns={columns}
+    data={rows ?? []}
+    state={{
+      isLoading: loading,
+      pagination,
+      showAlertBanner: !!error,
+      showProgressBars: loading,
+    }}
+    enableRowSelection
+    enablePagination={false}
+    manualPagination
+    rowCount={totalCount}
+    muiTableContainerProps={{
+      sx: {
+        minWidth: '700px',  // Adjust this based on your columns (e.g., 'max-content' to auto-fit widest content)
+        maxWidth: '70vw',   // Prevent capping
+        // overflowX: 'none',  // Ensure inner content can overflow
+      },
+    }}
+    muiTablePaperProps={{
+      sx: {
+        boxShadow: 'none',  // Removes elevation that might clip
+        overflow: 'visible',  // Allows overflow to bubble up
+        width: '100%',      // Fits parent but allows child overflow
+      },
+    }}
+    muiTableBodyRowProps={({ row }) => ({
+      onClick: () => navigate(`/request/ticket/${row.original.id}`),
+      sx: { cursor: 'pointer' },
+    })}
+    muiToolbarAlertBannerProps={
+      error ? { color: 'error', children: error } : undefined
+    }
+  />
+</Box>
+
 
       <FilterDialogue
         open={open}

@@ -8,7 +8,7 @@ const ResetPassword = lazy(() => import('./UserLogin/PasswordReset'));
 const NotFound = lazy(() => import('./Notfound'));
 const RegisterPage = lazy(() => import('./UserLogin/RegisterUser'));
 const Home = lazy(() => import('./HomePage/HomePage'));
-const EditForm = lazy(() => import('../Components/Requests/CreateEditRequest'));
+const EditForm = lazy(() => import('./Requests/CreateEditRequestTicket'));
 const TicketDetails = lazy(() => import('../Components/Requests/TicketDetails/TicketBody'));
 const AccountDetails = lazy(() => import('../Components/HomePage/AccountDetails'));
 const FormBuilder = lazy(() => import('../Components/HomePage/FormBuilder'))
@@ -22,7 +22,7 @@ export const routes = [
   { path: "/login", element: <LoginPage /> },
   { path: "/register-user", element: <RegisterPage /> },
   { path: "/request", element: <Request />, roles: ["user"] },
-  { path: "/account-details", element: <AccountDetails />, roles: ["admin"] },
+  { path: "/account-details", element: <AccountDetails />, roles: ["user"] },
   { path: "/solution", element: <SolutionMain />, roles: ["user"] },
   { path: "/milestone-builder", element: <FormBuilder />, roles: ["user"] },
   { path: "/assets", element: <AssetsViewer />, roles: ["user", "admin"] },

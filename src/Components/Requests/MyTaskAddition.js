@@ -24,7 +24,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import styled from "styled-components";
-import CreateEditRequest from "./CreateEditRequest";
+import CreateEditRequest from "./CreateEditRequestTicket";
 
 // Animate the WIDTH of the card
 const CollapsiblePanel = styled(TasksPanel).withConfig({
