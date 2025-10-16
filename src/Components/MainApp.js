@@ -63,7 +63,7 @@ function AppLayout() {
             <GlobalLoader />
             <SuccessFailureSnackbar />
 
-            <main style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+            <main style={{ flex: 1, padding: "20px", overflowY: "auto",overflowX:"auto" }}>
               <Outlet />
             </main>
             <Footer />

@@ -25,6 +25,8 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import styled from "styled-components";
 import CreateEditRequest from "./CreateEditRequestTicket";
+import * as  actions from "../../stores/actions"
+import { useDispatch } from "react-redux";
 
 // Animate the WIDTH of the card
 const CollapsiblePanel = styled(TasksPanel).withConfig({
@@ -60,6 +62,7 @@ const CollapseButton = styled(IconButton).withConfig({
 `;
 
 export default function MyAllTasks() {
+  const dispatch=useDispatch();
   const [collapsed, setCollapsed] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -67,7 +70,9 @@ export default function MyAllTasks() {
 
   return (
     <CollapsiblePanel collapsed={collapsed ? 1 : 0}>
-      <CreateEditRequest open={open} setOpen={setOpen}/>
+      <CreateEditRequest 
+      
+       />
     <TasksHeader>
       {!collapsed && "My All Tasks"}
       <IconGroup>
@@ -123,7 +128,8 @@ export default function MyAllTasks() {
           />
           <EmptyText>There are no tasks in this view</EmptyText>
           <NewTaskButton onClick={()=>{
-            setOpen(true)
+            dispatch(actions.openFulldialogue())
+            // setOpen(true)
           }}>
             <AddCircleOutlineIcon /> New Task
           </NewTaskButton>

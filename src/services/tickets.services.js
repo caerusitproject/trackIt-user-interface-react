@@ -19,10 +19,10 @@ export const fetchAllEmailUsers = ()=>{
         
 }
 
-export const viewAllTicketService = ()=>{
+export const viewAllTicketService = (offset,limit)=>{
     return new Promise (async(resolve,reject)=>{
         try{
-           let response = await api.get(`/api/v1/tickets`,{
+           let response = await api.get(`/api/v1/tickets?page=${offset}&size=${limit}`,{
                 Authorization:`Bearer ${token}`
            });
            if(response && response.status){

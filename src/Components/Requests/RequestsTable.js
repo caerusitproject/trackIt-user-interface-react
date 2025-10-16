@@ -28,8 +28,11 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
 import jsonData from "../../db.json"
+
 import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper } from "../../styled_components/requesttable.styled";
 import { useSelector,useDispatch } from "react-redux";
+import * as actions from "../../stores/actions";
+import dayjs from "dayjs";
 
 
 function TablePaginationActions(props) {
@@ -76,9 +79,14 @@ TablePaginationActions.propTypes = {
 };
 
 export default function RequestsTable() {
+  const allTickets=useSelector((state)=>state.ticket.viewallTickets)
+  const actionStatus =useSelector((state)=>state.ticket.actionStatus)
+  
+  const dispatch=useDispatch();
   const navigate = useNavigate();
   const {ticketObj} = useSelector((state)=> state.ticket)
   const [rows, setRows] = useState([]);
+  const [ticketsAll, setTicketsAll] = useState(null)
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -86,49 +94,68 @@ export default function RequestsTable() {
   const [checked, setChecked] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  // ✅ Fetch data with pagination
-  // const fetchPage = async (page, pageSize) => {
-  //   setLoading(true);
-  //   setError(null);
-  //   try {
-  //     const offset = page * pageSize;
-  //     const resp = await fetch(
-  //       `http://localhost:3000/posts?_start=${offset}&_limit=${pageSize}`
-  //     );
-  //     if (!resp.ok) throw new Error("Failed to fetch data");
-
-  //     const json = await resp.json();
-  //     // setRows(json);
-  //     setRows(jsonData.posts);
-
-  //     const total = resp.headers.get("X-Total-Count") || json.total || 15;
-  //     setTotalCount(Number(total));
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  useEffect(() => {
-    if(ticketObj && ticketObj instanceof Object){
-      setRows([...rows,ticketObj])
-      setTotalCount((prev) => prev + 1);
-    }
-  }, [ticketObj])
-  
-
-  // MRT handles pagination, so listen to page changes
+  const [cachedTickets, setCachedTickets] = useState(null);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5,
   });
 
-  // useEffect(() => {
-  //   fetchPage(pagination.pageIndex, pagination.pageSize);
+  // ✅ Fetch data with pagination
+  const fetchPage = async (page, pageSize) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const offset = page * pageSize;
+      const resp = await fetch(
+        `http://localhost:3000/posts?_start=${offset}&_limit=${pageSize}`
+      );
+      if (!resp.ok) throw new Error("Failed to fetch data");
+
+      const json = await resp.json();
+      // setRows(json);
+      setRows(jsonData.posts);
+
+      const total = resp.headers.get("X-Total-Count") || json.total || 15;
+      setTotalCount(Number(total));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+// MRT handles pagination, so listen to page changes
+
+// useEffect(() => {
+  //   dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize))
+  //    setTotalCount(allTickets?.totalElements);
+  //   // fetchPage(pagination.pageIndex, pagination.pageSize);
   //    setRows(jsonData.posts);
-  // }, [pagination]);
+  // }, [pagination,allTickets]);
+  
+  useEffect(() => {
+    dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+  }, [dispatch,pagination.pageIndex, pagination.pageSize]);
+  
+  useEffect(() => {
+  let ignore = false;
+
+  const fetchData = async () => {
+    if (ignore) return;
+    await dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+  };
+
+  fetchData();
+
+  return () => { ignore = true; };
+}, [pagination]);
+
+// useEffect(() => {
+//   if (allTickets) {
+//     setCachedTickets(allTickets);
+//   }
+// }, [allTickets]);
 
   // useEffect(() => {
   //   // fetchPage(pagination.pageIndex, pagination.pageSize);
@@ -149,6 +176,8 @@ const columns = useMemo(
       {
         accessorKey: "mailIcon",
         header: "",
+        enableColumnActions: false,
+        enableSorting: false,
         size: 50, // Force min sizes to expand table
         Cell: () => (
           <IconButton size="small">
@@ -159,16 +188,30 @@ const columns = useMemo(
       {
         accessorKey: "editIcon",
         header: "",
+        enableColumnActions: false,
+        enableSorting: false,
         size: 50,
-        Cell: () => (
+        Cell: ({cell}) => {
+          let ticketId=cell.row.original.id
+          return(
           <IconButton size="small">
-            <EditIcon fontSize="small" />
+            <EditIcon 
+             onClick={(e)=>{
+                e.stopPropagation()
+                if (!allTickets) return;
+                dispatch(actions.openFulldialogue())
+                dispatch(actions.selectTicketForEdit(ticketId));
+             }}
+            fontSize="small" />
           </IconButton>
-        ),
+          )
+        },
       },
       {
         accessorKey: "noteIcon",
         header: "",
+        enableColumnActions: false,
+        enableSorting: false,
         size: 50,
         Cell: () => (
           <IconButton size="small">
@@ -186,6 +229,12 @@ const columns = useMemo(
             {cell.getValue()}
           </Box>
         ),
+      },
+       {
+        accessorKey: "status",
+        header: "Status",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
       },
       {
         accessorKey: "subject",
@@ -206,18 +255,26 @@ const columns = useMemo(
       {
         accessorKey: "startDate",
         header: "Start Date",
+        Cell: ({ cell }) => {
+          const value = cell.getValue();
+          return value ? dayjs(value).format('YYYY-MM-DD') : "—";
+        },
         size: 120,
       },
-      {
-        accessorKey: "endDate",
+      { accessorKey: "dueDate",
         header: "End Date",
-        size: 120,
+        size: 120, 
+         Cell: ({ cell }) => {
+          const value = cell.getValue();
+          return value ? dayjs(value).format('YYYY-MM-DD') : "—";
+        },
       },
+      
     ],
     []
   );
 
-  console.log('table creation__',rows,ticketObj)
+  console.log('table creation__',allTickets,actionStatus)
 
  const handleChangePage = (_, newPage) => {
   setPagination((prev) => ({ ...prev, pageIndex: newPage }));
@@ -227,7 +284,7 @@ const handleChangeRowsPerPage = (e) => {
   const newSize = parseInt(e.target.value, 10);
   setPagination({ pageIndex: 0, pageSize: newSize });
 };
-const totalPages = Math.ceil(totalCount / pagination.pageSize);
+// const totalPages = Math.ceil(totalCount / pagination.pageSize);
   return (
     <Box>
       {/* ✅ Custom Header */}
@@ -238,7 +295,7 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
               <TablePagination
                 component="div"
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                count={totalCount}
+                count={totalCount || allTickets?.totalElements}
                 rowsPerPage={pagination.pageSize}
                 page={pagination.pageIndex}
                 onPageChange={handleChangePage}
@@ -309,7 +366,7 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
 <Box sx={{ overflowX: 'auto', maxWidth: '70vw', display: 'block' }}>  
   <MaterialReactTable
     columns={columns}
-    data={rows ?? []}
+    data={allTickets?.content ?? []}
     state={{
       isLoading: loading,
       pagination,
@@ -319,7 +376,7 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
     enableRowSelection
     enablePagination={false}
     manualPagination
-    rowCount={totalCount}
+    rowCount={totalCount || allTickets?.totalElements} 
     muiTableContainerProps={{
       sx: {
         minWidth: '700px',  // Adjust this based on your columns (e.g., 'max-content' to auto-fit widest content)

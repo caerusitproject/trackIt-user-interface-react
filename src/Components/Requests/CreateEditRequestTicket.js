@@ -152,9 +152,13 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function TicketPropertiesDialog({open,setOpen}) {
+export default function TicketPropertiesDialog() {
   const dispatch=useDispatch()
   const userProfileData =useSelector((state)=>state.user.userProfileData)
+  const openTicket =useSelector((state)=>state.ticket.openTicket)
+  const actionStatus =useSelector((state)=>state.ticket.actionStatus)
+  const allTickets=useSelector((state)=>state.ticket.viewallTickets)
+  const editedTicket =useSelector((state)=>state.ticket.editedTicket)
   const {allUsers}=useSelector((state)=>state.ticket);
   const [employeeObj, setEmployeeObj] = useState(null)
   const [requestorEmail, setRequestorEmail] = useState([])
@@ -185,13 +189,47 @@ export default function TicketPropertiesDialog({open,setOpen}) {
 
   })
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => dispatch(actions.closeFulldialogue());
 
+  // To fetch all the users in the drodown
   React.useEffect(() => {
-    if(open){
+    let debounce = false
+    if(openTicket){
+      if(debounce) return;
       dispatch(actions.fetchallUsers())
     }
-  }, [open])
+    return(()=>{ debounce = true})
+  }, [openTicket])
+
+  React.useEffect(()=>{
+    if(editedTicket && editedTicket instanceof Object){
+      setTicketvalue({...ticketvalue,
+          assignee:editedTicket?.assigneeUserId,
+          requester: editedTicket.requester ? editedTicket.requester : "N/A",
+          category: editedTicket.category ? editedTicket.category : "N/A",
+          subcategory: editedTicket.subCategory ? editedTicket.subCategory : "N/A",
+          item: editedTicket.item ? editedTicket.item : "N/A",
+          impact: editedTicket.impact ? editedTicket.impact :"N/A",
+          site: editedTicket.site ? editedTicket.site :"N/A",
+          subject: editedTicket.subject ? editedTicket.subject : "N/A",
+          priority: editedTicket.priority ? editedTicket.priority : "N/A",
+          status: editedTicket.status ? editedTicket.status :"N/A",
+          mode: editedTicket.mode ? editedTicket.mode : "N/A",
+          group: editedTicket.group ? editedTicket.group : "N/A",
+          technician: editedTicket.technician ? editedTicket.technician :"N/A",
+          description: "",
+          additionalEmails: [],
+          createdDate: "",
+          startDate: editedTicket.startDate ? dayjs(editedTicket.startDate) : "",
+          endDate: editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "",
+          dueBy: "",
+          attachments: null,
+      })
+      let filterDetail=allUsers.find((element)=> element.email == editedTicket.requester);
+      setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
+    }
+  
+  },[editedTicket])
 
   React.useEffect(() => {
     let filteredEmail=allUsers?.map((item)=>item.email);
@@ -199,7 +237,7 @@ export default function TicketPropertiesDialog({open,setOpen}) {
   }, [allUsers])
   
 
-  console.log('all users for render__',allUsers,employeeObj != null,employeeObj)
+  console.log('all users for render__',editedTicket)
 
 const RequiredLabel = ({label,mandatory}) => (
   <div
@@ -314,16 +352,17 @@ const handleSaveChanges = (e)=>{
    createTicketService(ticketObj).then((res)=>{
       if(res && (res?.status)){
         resetFunctionform()
-        setOpen(false)
+        dispatch(actions.closeFulldialogue())
         dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
-        viewAllTicketService().then((response)=>{
-          if(response && Array.isArray(response.content)){
-            console.log('store each ticket data__',response?.content)
-            dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
-            }
-        }).catch((err)=>{
-          dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
-        })
+        dispatch(actions.viewAllTicket(0,5))
+        // viewAllTicketService(0,5).then((response)=>{
+        //   if(response && Array.isArray(response.content)){
+        //     console.log('store each ticket data__',response?.content)
+        //     dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+        //     }
+        // }).catch((err)=>{
+        //   dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+        // })
       }else{
           return
       }
@@ -390,14 +429,14 @@ const resetFunctionform = ()=>{
           transition: Transition,
         }}
       fullScreen 
-      open={open}
+      open={openTicket}
       onClose={handleClose}>
       {/* Top Bar */}
       <AppBar sx={{ position: "relative", backgroundColor: "#f06c35" }}>
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={()=>{
             resetFunctionform()
-            setOpen(false)
+            dispatch(actions.closeFulldialogue())
             }}>
             <CloseIcon />
           </IconButton>
@@ -876,7 +915,7 @@ const resetFunctionform = ()=>{
               <Button 
               onClick={()=>{
                 resetFunctionform()
-                setOpen(false)
+                dispatch(actions.closeFulldialogue())
               }}
               variant="outlined">Cancel</Button>
             </Box>

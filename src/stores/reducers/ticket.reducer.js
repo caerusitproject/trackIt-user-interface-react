@@ -2,7 +2,11 @@
 const initialState = {
  allUsers:[],
  ticketObj:null,
- loading:false
+ loading:false,
+ viewallTickets:null,
+ openTicket:false,
+ actionStatus:null,
+ editedTicket:null
 };
 
 export const ticketReducers = (state = initialState, action) => {
@@ -12,7 +16,22 @@ export const ticketReducers = (state = initialState, action) => {
 
     case 'CREATE_TICKET':
       return { ...state, loading: true, ticketObj: action.payload };
-    
+
+    case 'FETCH_ALL_TICKETS':
+      return { ...state, loading: true, viewallTickets: action.payload };
+
+    case 'OPEN_FULL_DIALOGUE':
+      return { ...state, loading: true, openTicket: true};
+
+    case 'CLOSE_FULL_DIALOGUE':
+      return { ...state, loading: true, openTicket: false };
+
+
+    case 'SELECT_TICKET_FOR_EDIT':
+       console.log('ticket reducers',state.viewallTickets)
+      return { ...state, openTicket:true, editedTicket:state.viewallTickets?.content.find((ele)=>ele.id == action.payload)};
+
+      
     default:
       return state;
   }
