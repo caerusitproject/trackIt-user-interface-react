@@ -6,6 +6,7 @@ export const FETCH_ALL_TICKETS = 'FETCH_ALL_TICKETS';
 export const OPEN_FULL_DIALOGUE = 'OPEN_FULL_DIALOGUE';
 export const CLOSE_FULL_DIALOGUE = 'CLOSE_FULL_DIALOGUE';
 export const SELECT_TICKET_FOR_EDIT = 'SELECT_TICKET_FOR_EDIT';
+export const EDIT_STATUS_CHECK = 'EDIT_STATUS_CHECK';
 
 
 export const fetchallUsers = () => {
@@ -40,6 +41,12 @@ export const selectTicketForEdit = (ticketId) => ({
   type: SELECT_TICKET_FOR_EDIT,
   payload: ticketId
 });
+
+export const editStatusChecker = (status) => ({
+  type: EDIT_STATUS_CHECK,
+  payload: status
+});
+// editStatusChecker
 
 export const closeFulldialogue = ()=>{
     return (dispatch) => {

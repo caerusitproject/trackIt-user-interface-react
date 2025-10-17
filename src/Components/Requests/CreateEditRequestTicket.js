@@ -31,7 +31,8 @@ import { useDispatch, useSelector } from "react-redux";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {createTicketService,viewAllTicketService} from "../../services/tickets.services"
+import {createTicketService,viewAllTicketService,editTicketService} from "../../services/tickets.services"
+import {getChangedFields} from "../../Config/utils"
 import ListItemText from '@mui/material/ListItemText';
 
 const ITEM_HEIGHT = 48;
@@ -156,15 +157,18 @@ export default function TicketPropertiesDialog() {
   const dispatch=useDispatch()
   const userProfileData =useSelector((state)=>state.user.userProfileData)
   const openTicket =useSelector((state)=>state.ticket.openTicket)
-  const actionStatus =useSelector((state)=>state.ticket.actionStatus)
-  const allTickets=useSelector((state)=>state.ticket.viewallTickets)
+  // const actionStatus =useSelector((state)=>state.ticket.actionStatus)
+  // const allTickets=useSelector((state)=>state.ticket.viewallTickets)
   const editedTicket =useSelector((state)=>state.ticket.editedTicket)
+  const editTicketId =useSelector((state)=>state.ticket.editTicketId)
+  const editStatus =useSelector((state)=>state.ticket.editStatus)
   const {allUsers}=useSelector((state)=>state.ticket);
   const [employeeObj, setEmployeeObj] = useState(null)
   const [requestorEmail, setRequestorEmail] = useState([])
   const [startDate, setStartDate] = useState(dayjs());
   const [file, setFile] = useState([])
   const [endDate, setEndDate] = useState(dayjs().add(1, "day"));
+  const [softCopyObj, setSoftCopyObj] = useState(null)
   const [ticketvalue, setTicketvalue] = useState({
     assignee:"",
     requester: "",
@@ -176,12 +180,12 @@ export default function TicketPropertiesDialog() {
     subject: "",
     priority: "",
     status: "",
-    mode: "",
+    notificationMode: "",
     group: "",
     technician: "",
     description: "",
     additionalEmails: [],
-    createdDate: "",
+    // createdDate: "",
     startDate: startDate,
     endDate: endDate,
     dueBy: "",
@@ -202,34 +206,39 @@ export default function TicketPropertiesDialog() {
   }, [openTicket])
 
   React.useEffect(()=>{
-    if(editedTicket && editedTicket instanceof Object){
-      setTicketvalue({...ticketvalue,
-          assignee:editedTicket?.assigneeUserId,
-          requester: editedTicket.requester ? editedTicket.requester : "N/A",
-          category: editedTicket.category ? editedTicket.category : "N/A",
-          subcategory: editedTicket.subCategory ? editedTicket.subCategory : "N/A",
-          item: editedTicket.item ? editedTicket.item : "N/A",
-          impact: editedTicket.impact ? editedTicket.impact :"N/A",
-          site: editedTicket.site ? editedTicket.site :"N/A",
-          subject: editedTicket.subject ? editedTicket.subject : "N/A",
-          priority: editedTicket.priority ? editedTicket.priority : "N/A",
-          status: editedTicket.status ? editedTicket.status :"N/A",
-          mode: editedTicket.mode ? editedTicket.mode : "N/A",
-          group: editedTicket.group ? editedTicket.group : "N/A",
-          technician: editedTicket.technician ? editedTicket.technician :"N/A",
-          description: "",
-          additionalEmails: [],
-          createdDate: "",
-          startDate: editedTicket.startDate ? dayjs(editedTicket.startDate) : "",
-          endDate: editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "",
-          dueBy: "",
-          attachments: null,
-      })
-      let filterDetail=allUsers.find((element)=> element.email == editedTicket.requester);
-      setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
+    if(editedTicket && editedTicket !=null && typeof editStatus == 'string'){
+      if(editStatus && editStatus == 'EDIT'){
+        setSoftCopyObj({...editedTicket})
+        setTicketvalue({...ticketvalue,
+            assignee:editedTicket?.assigneeUserId,
+            requester: editedTicket.requester ? editedTicket.requester : "",
+            category: editedTicket.category ? editedTicket.category : "",
+            subcategory: editedTicket.subCategory ? editedTicket.subCategory : "",
+            item: editedTicket.item ? editedTicket.item : "",
+            impact: editedTicket.impact ? editedTicket.impact :"",
+            site: editedTicket.site ? editedTicket.site :"",
+            subject: editedTicket.subject ? editedTicket.subject : "",
+            priority: editedTicket.priority ? editedTicket.priority : "",
+            status: editedTicket.status ? editedTicket.status :"",
+            notificationMode: editedTicket.notificationMode ? editedTicket.notificationMode : "",
+            group: editedTicket.group ? editedTicket.group : "",
+            technician: editedTicket.technician ? editedTicket.technician :"",
+            description: "",
+            additionalEmails: [],
+            // createdDate: "",
+            startDate: editedTicket.startDate ? dayjs(editedTicket.startDate) : "",
+            endDate: editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "",
+            dueBy: "",
+            attachments: null,
+        })
+        let filterDetail=allUsers.find((element)=> element.email == editedTicket.requester);
+        setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
+      }
+    }else if(editedTicket == null){
+        resetFunctionform()
     }
   
-  },[editedTicket])
+  },[editedTicket,editStatus])
 
   React.useEffect(() => {
     let filteredEmail=allUsers?.map((item)=>item.email);
@@ -237,7 +246,7 @@ export default function TicketPropertiesDialog() {
   }, [allUsers])
   
 
-  console.log('all users for render__',editedTicket)
+  console.log('all users for render__',editedTicket,editStatus,editTicketId)
 
 const RequiredLabel = ({label,mandatory}) => (
   <div
@@ -304,7 +313,7 @@ const validate =()=>{
     val=true;
     message="Status cannot be empty"
   }
-  if(ticketvalue && ticketvalue.mode.length == 0){
+  if(ticketvalue && ticketvalue.notificationMode.length == 0){
     val=true;
     message="Mode cannot be empty"
   }
@@ -332,7 +341,7 @@ const handleSaveChanges = (e)=>{
     subject: ticketvalue.subject,
     priority: ticketvalue.priority,
     status: ticketvalue.status,
-    notificationMode: ticketvalue.mode,
+    notificationMode: ticketvalue.notificationMode,
     groupName: ticketvalue.group,
     technician: ticketvalue.technician,
     // description: ticketvalue.description,
@@ -340,7 +349,7 @@ const handleSaveChanges = (e)=>{
     "content": ""
     },
     // additionalEmails: [...wrappedEmail],
-    createdDate: "",
+    // createdDate: "",
     startDate:new Date(startDate),
     dueDate:new Date(endDate),
     // startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") :"",
@@ -349,27 +358,47 @@ const handleSaveChanges = (e)=>{
     documents: file && file.length > 0 ? file.map((item)=> item.file) : [],
   }
   // dispatch(actions.createTicket(obj))
-   createTicketService(ticketObj).then((res)=>{
-      if(res && (res?.status)){
-        resetFunctionform()
-        dispatch(actions.closeFulldialogue())
-        dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
-        dispatch(actions.viewAllTicket(0,5))
-        // viewAllTicketService(0,5).then((response)=>{
-        //   if(response && Array.isArray(response.content)){
-        //     console.log('store each ticket data__',response?.content)
-        //     dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
-        //     }
-        // }).catch((err)=>{
-        //   dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
-        // })
-      }else{
-          return
-      }
-    }).catch((err)=>{
-          dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
-    })
-  console.log('ticket details creation__',userProfileData);
+  if(editStatus && editStatus == 'CREATE'){
+    createTicketService(ticketObj).then((res)=>{
+       if(res && (res?.status)){
+         resetFunctionform()
+         dispatch(actions.closeFulldialogue())
+         dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
+         dispatch(actions.viewAllTicket(0,5))
+         // viewAllTicketService(0,5).then((response)=>{
+         //   if(response && Array.isArray(response.content)){
+         //     console.log('store each ticket data__',response?.content)
+         //     dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+         //     }
+         // }).catch((err)=>{
+         //   dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+         // })
+       }else{
+           return
+       }
+     }).catch((err)=>{
+           dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+     })
+   console.log('ticket details creation__',userProfileData);
+  }else if(editStatus && editStatus == 'EDIT'){
+    let diffKeyMaker=getChangedFields(softCopyObj,ticketObj);
+    console.log('see the diff___',diffKeyMaker,softCopyObj)
+      editTicketService(diffKeyMaker,editTicketId).then((response)=>{
+        if(response && response.status){
+         dispatch(actions.closeFulldialogue())
+         dispatch(actions.viewAllTicket(0,5))
+         dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+         resetFunctionform()
+        }
+      }).catch((err)=>{
+         dispatch(actions.closeFulldialogue())
+         dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+         dispatch(actions.viewAllTicket(0,5))
+        //  resetFunctionform()
+      })
+  }else{
+    return
+  }
   }else{
     dispatch(actions.openSnackbar({message:formvalidate?.message,status:'error'}))
     return
@@ -378,7 +407,7 @@ const handleSaveChanges = (e)=>{
 }
 
 const resetFunctionform = ()=>{
-  setTicketvalue({...ticketvalue,
+  setTicketvalue({
     assignee:"",
     requester: "",
     category: "",
@@ -389,12 +418,12 @@ const resetFunctionform = ()=>{
     subject: "",
     priority: "",
     status: "",
-    mode: "",
+    notificationMode: "",
     group: "",
     technician: "",
     description: "",
     additionalEmails: [],
-    createdDate: "",
+    // createdDate: "",
     startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") :"",
     endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") :"",
     dueBy: ticketvalue.dueBy,
@@ -435,7 +464,10 @@ const resetFunctionform = ()=>{
       <AppBar sx={{ position: "relative", backgroundColor: "#f06c35" }}>
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={()=>{
+            // if(editStatus && editStatus == 'CREATE'){
+              // }
             resetFunctionform()
+            dispatch(actions.editStatusChecker(''));
             dispatch(actions.closeFulldialogue())
             }}>
             <CloseIcon />
@@ -456,7 +488,7 @@ const resetFunctionform = ()=>{
           <Header>
             <div>
               <span>Request ID :</span>
-              <strong style={{ marginLeft: 6 }}>84581</strong>
+              <strong style={{ marginLeft: 6 }}>{editTicketId}</strong>
             </div>
             {/* <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <label>Template</label>
@@ -684,8 +716,8 @@ const resetFunctionform = ()=>{
 
                   <FormControl fullWidth margin="normal" variant="outlined">
                     <Select
-                      name="mode"
-                      value={ticketvalue.mode}
+                      name="notificationMode"
+                      value={ticketvalue.notificationMode}
                       onChange={handleChange}
                       defaultValue=""
                       displayEmpty
@@ -907,14 +939,16 @@ const resetFunctionform = ()=>{
               <Button onClick={(e) => {
                 handleSaveChanges(e)
               }} variant="contained" color="error">
-                Create Ticket
+                {editStatus && editStatus == 'EDIT' ? "Update" :"Create"} Ticket
               </Button>
-              <Button onClick={()=>{
+              <Button disabled={editStatus && editStatus == 'EDIT' ? true : false}
+               onClick={()=>{
                 resetFunctionform()
               }} variant="outlined">Reset</Button>
               <Button 
               onClick={()=>{
                 resetFunctionform()
+                dispatch(actions.editStatusChecker(''));
                 dispatch(actions.closeFulldialogue())
               }}
               variant="outlined">Cancel</Button>

@@ -128,7 +128,8 @@ export default function MyAllTasks() {
           />
           <EmptyText>There are no tasks in this view</EmptyText>
           <NewTaskButton onClick={()=>{
-            dispatch(actions.openFulldialogue())
+            dispatch(actions.openFulldialogue());
+            dispatch(actions.editStatusChecker('CREATE'));
             // setOpen(true)
           }}>
             <AddCircleOutlineIcon /> New Task

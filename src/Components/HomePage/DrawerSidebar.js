@@ -59,7 +59,9 @@ export default function DrawerSidebar({ handleNavigate, navigate, open, setOpen 
   const handleAgreedAction = async () => {
     const refreshToken = localStorage.getItem("refresh-token");
     if (!refreshToken) return;
-
+    // dispatch(actions.logout());
+    // handleNavigate("/login");
+    // navigate("/login", { replace: true });
     try {
       dispatch(actions.openLoader());
       const res = await logoutService({ refreshToken });

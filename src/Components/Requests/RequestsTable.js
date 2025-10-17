@@ -28,11 +28,14 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
 import jsonData from "../../db.json"
-
+import DeleteIcon from '@mui/icons-material/Delete';
 import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper } from "../../styled_components/requesttable.styled";
 import { useSelector,useDispatch } from "react-redux";
 import * as actions from "../../stores/actions";
 import dayjs from "dayjs";
+import GlobalLoader from "../../Config/GlobalLoader";
+import {deleteTicketService} from "../../services/tickets.services"
+import ConfirmationDialog from "../../Config/ConfirmationDialogue"
 
 
 function TablePaginationActions(props) {
@@ -85,6 +88,7 @@ export default function RequestsTable() {
   const dispatch=useDispatch();
   const navigate = useNavigate();
   const {ticketObj} = useSelector((state)=> state.ticket)
+  const [ticketId, setTicketId] = useState(null)
   const [rows, setRows] = useState([]);
   const [ticketsAll, setTicketsAll] = useState(null)
   const [totalCount, setTotalCount] = useState(0);
@@ -151,12 +155,13 @@ export default function RequestsTable() {
   return () => { ignore = true; };
 }, [pagination]);
 
-// useEffect(() => {
-//   if (allTickets) {
-//     setCachedTickets(allTickets);
-//   }
-// }, [allTickets]);
+useEffect(() => {
+  if (!allTickets || allTickets.length === 0) {
+    dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize))
+  }
+}, [dispatch]);
 
+console.log('show all tickets__',allTickets)
   // useEffect(() => {
   //   // fetchPage(pagination.pageIndex, pagination.pageSize);
   //    setRows(jsonData.posts);
@@ -184,28 +189,6 @@ const columns = useMemo(
             <MailIcon fontSize="small" />
           </IconButton>
         ),
-      },
-      {
-        accessorKey: "editIcon",
-        header: "",
-        enableColumnActions: false,
-        enableSorting: false,
-        size: 50,
-        Cell: ({cell}) => {
-          let ticketId=cell.row.original.id
-          return(
-          <IconButton size="small">
-            <EditIcon 
-             onClick={(e)=>{
-                e.stopPropagation()
-                if (!allTickets) return;
-                dispatch(actions.openFulldialogue())
-                dispatch(actions.selectTicketForEdit(ticketId));
-             }}
-            fontSize="small" />
-          </IconButton>
-          )
-        },
       },
       {
         accessorKey: "noteIcon",
@@ -269,7 +252,44 @@ const columns = useMemo(
           return value ? dayjs(value).format('YYYY-MM-DD') : "—";
         },
       },
-      
+       {
+        accessorKey: "editIcon",
+        header: "Actions",
+        enableColumnActions: false,
+        enableSorting: false,
+        size: 50,
+        Cell: ({cell}) => {
+          let ticketId=cell.row.original.id
+          return(
+            <div style={{display:"flex",justifyContent:"center"}}>
+          <IconButton
+            onClick={(e)=>{
+                e.stopPropagation()
+                if (allTickets && allTickets == null && allTickets?.content.length == 0) return;
+                dispatch(actions.openFulldialogue())
+                dispatch(actions.selectTicketForEdit(ticketId));
+                dispatch(actions.editStatusChecker('EDIT'));
+             }}
+              size="small">
+            <EditIcon 
+            fontSize="small" />
+          </IconButton>
+          <IconButton 
+             onClick={(e)=>{
+                e.stopPropagation()
+                setTicketId(ticketId)
+                dispatch(actions.openSideDrawer(`You are about to delete this ticket id ${ticketId}`, true));
+                //  alert('now this ticket id will be deleted !')
+             }}
+          >
+             <DeleteIcon
+              fontSize="small"
+             />
+          </IconButton>
+          </div>
+          )
+        },
+      },
     ],
     []
   );
@@ -284,6 +304,21 @@ const handleChangeRowsPerPage = (e) => {
   const newSize = parseInt(e.target.value, 10);
   setPagination({ pageIndex: 0, pageSize: newSize });
 };
+
+const handleAgreedAction = async()=>{
+  try{
+    deleteTicketService(ticketId).then((res)=>{
+      if(res && res?.status){
+        dispatch(actions.openSnackbar({message:'Deleted Successfully',status:"success"}))
+      }
+    }).catch((err)=>{
+       dispatch(actions.openSnackbar({message:err.message,status:"error"}))
+    })
+  }catch(err){
+     dispatch(actions.openSnackbar({message:err.message,status:"error"}))
+     
+  }
+}
 // const totalPages = Math.ceil(totalCount / pagination.pageSize);
   return (
     <Box>
@@ -363,45 +398,50 @@ const handleChangeRowsPerPage = (e) => {
 
       {/* ✅ Material React Table */}
 
-<Box sx={{ overflowX: 'auto', maxWidth: '70vw', display: 'block' }}>  
-  <MaterialReactTable
-    columns={columns}
-    data={allTickets?.content ?? []}
-    state={{
-      isLoading: loading,
-      pagination,
-      showAlertBanner: !!error,
-      showProgressBars: loading,
-    }}
-    enableRowSelection
-    enablePagination={false}
-    manualPagination
-    rowCount={totalCount || allTickets?.totalElements} 
-    muiTableContainerProps={{
-      sx: {
-        minWidth: '700px',  // Adjust this based on your columns (e.g., 'max-content' to auto-fit widest content)
-        maxWidth: '70vw',   // Prevent capping
-        // overflowX: 'none',  // Ensure inner content can overflow
-      },
-    }}
-    muiTablePaperProps={{
-      sx: {
-        boxShadow: 'none',  // Removes elevation that might clip
-        overflow: 'visible',  // Allows overflow to bubble up
-        width: '100%',      // Fits parent but allows child overflow
-      },
-    }}
-    muiTableBodyRowProps={({ row }) => ({
-      onClick: () => navigate(`/request/ticket/${row.original.id}`),
-      sx: { cursor: 'pointer' },
-    })}
-    muiToolbarAlertBannerProps={
-      error ? { color: 'error', children: error } : undefined
+<Box sx={{ overflowX: 'auto', maxWidth: '70vw', display: 'block' }}> 
+  {!allTickets ? (
+  <GlobalLoader/>
+    ) : ( 
+      <MaterialReactTable
+        columns={columns}
+        data={allTickets?.content ?? []}
+        state={{
+          isLoading: loading,
+          pagination,
+          showAlertBanner: !!error,
+          showProgressBars: loading,
+        }}
+        enableRowSelection
+        enablePagination={false}
+        manualPagination
+        rowCount={totalCount || allTickets?.totalElements} 
+        muiTableContainerProps={{
+          sx: {
+            minWidth: '700px',  // Adjust this based on your columns (e.g., 'max-content' to auto-fit widest content)
+            maxWidth: '70vw',   // Prevent capping
+            // overflowX: 'none',  // Ensure inner content can overflow
+          },
+        }}
+        muiTablePaperProps={{
+          sx: {
+            boxShadow: 'none',  // Removes elevation that might clip
+            overflow: 'visible',  // Allows overflow to bubble up
+            width: '100%',      // Fits parent but allows child overflow
+          },
+        }}
+        muiTableBodyRowProps={({ row }) => ({
+          onClick: () => navigate(`/request/ticket/${row.original.id}`),
+          sx: { cursor: 'pointer' },
+        })}
+        muiToolbarAlertBannerProps={
+          error ? { color: 'error', children: error } : undefined
+        }
+      />
+    )
     }
-  />
 </Box>
 
-
+    <ConfirmationDialog agreedAction={handleAgreedAction} />
       <FilterDialogue
         open={open}
         setOpen={setOpen}

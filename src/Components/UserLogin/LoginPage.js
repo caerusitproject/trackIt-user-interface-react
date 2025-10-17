@@ -31,6 +31,8 @@ import { validateEmail, checkPasswordComplexity } from '../../Config/utils';
 import { loginUsersService } from '../../services/users.services';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { v4 as uuidv4 } from 'uuid';
+
 
 function Login() {
   const isAuthenticated = useSelector((state) => state.login.isAuthenticated);
@@ -76,7 +78,7 @@ function Login() {
               dispatch(actions.closeLoader());
               localStorage.setItem('access-token',(res?.data?.accessToken))
               localStorage.setItem('refresh-token',(res?.data?.refreshToken))
-
+              localStorage.setItem('X-Correlation-Id',(uuidv4().toString()))
               // store user data in local storage
               dispatch(actions.loginSucess(userData))
               // dispatch(actions.fetchUserDataProfile())
