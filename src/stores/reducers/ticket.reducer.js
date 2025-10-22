@@ -8,7 +8,9 @@ const initialState = {
  actionStatus:null,
  editedTicket:null,
  editStatus:null,
- editTicketId:null
+ editTicketId:null,
+ page:0,
+ pageSize:10,
 };
 
 export const ticketReducers = (state = initialState, action) => {
@@ -30,6 +32,9 @@ export const ticketReducers = (state = initialState, action) => {
 
     case 'EDIT_STATUS_CHECK':
       return { ...state, loading: true, editStatus: action.payload , editedTicket : action.payload == 'CREATE' ? null:state.editedTicket};
+
+    case 'STORE_PAGINATION':
+      return { ...state, loading: true, page: action.payload.page, pageSize: action.payload.pageSize };
 
     case 'SELECT_TICKET_FOR_EDIT':
        console.log('ticket reducers',state.viewallTickets)

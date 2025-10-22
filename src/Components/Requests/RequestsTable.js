@@ -140,6 +140,7 @@ export default function RequestsTable() {
   
   useEffect(() => {
     dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+    dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
   }, [dispatch,pagination.pageIndex, pagination.pageSize]);
   
   useEffect(() => {
@@ -148,6 +149,7 @@ export default function RequestsTable() {
   const fetchData = async () => {
     if (ignore) return;
     await dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+    await dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
   };
 
   fetchData();
@@ -158,6 +160,7 @@ export default function RequestsTable() {
 useEffect(() => {
   if (!allTickets || allTickets.length === 0) {
     dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize))
+    dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
   }
 }, [dispatch]);
 
@@ -220,6 +223,12 @@ const columns = useMemo(
         muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
       },
       {
+        accessorKey: "priority",
+        header: "Priority",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
+      },
+      {
         accessorKey: "subject",
         header: "Subject",
         size: 200, // Wider for potential long text
@@ -231,7 +240,7 @@ const columns = useMemo(
         size: 150,
       },
       {
-        accessorKey: "assignee",
+        accessorKey: "assigneeUserId",
         header: "Assigned To",
         size: 150,
       },

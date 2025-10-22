@@ -231,6 +231,8 @@ export default function TicketPropertiesDialog() {
             dueBy: "",
             attachments: null,
         })
+        setEndDate(editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "");
+        setStartDate(editedTicket.startDate ? dayjs(editedTicket.startDate) : "");
         let filterDetail=allUsers.find((element)=> element.email == editedTicket.requester);
         setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
       }
