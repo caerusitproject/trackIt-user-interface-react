@@ -1,4 +1,4 @@
-import {fetchAllEmailUsers,createTicketService,viewAllTicketService,filterAllTicketService} from "../../services/tickets.services"
+import {fetchAllEmailUsers,createTicketService,viewAllTicketService,filterAllTicketService,uploadAttachmentsTicketService} from "../../services/tickets.services"
 import * as actions from "../actions"
 export const FETCH_ALL_USERS = 'FETCH_ALL_USERS';
 export const CREATE_TICKET = 'CREATE_TICKET';
@@ -61,11 +61,11 @@ export const closeFulldialogue = ()=>{
 export const filterTickets = (status,priority,category,subCategory,page,pageSize)=>{
     return (dispatch) => {
         filterAllTicketService(status,priority,category,subCategory,page,pageSize).then((response)=>{
-             if(response && Array.isArray(response.content)){
-                console.log('filter ticket table',response.content)
+             if(response && response.data && response.data instanceof Object){
+                console.log('filter ticket table',response.data)
                  dispatch({
                     type:FETCH_ALL_TICKETS,
-                    payload:response
+                    payload:response.data
                 })
                 dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
              }else{
@@ -81,11 +81,11 @@ export const viewAllTicket = (page,pageSize)=>{
     return (dispatch) => {
         // const offset = page * pageSize;
         viewAllTicketService(page,pageSize).then((response)=>{
-             if(response && Array.isArray(response.content)){
+             if(response && response.data && response.data instanceof Object){
                 console.log('store each ticket data__',response)
                 dispatch({
                     type:FETCH_ALL_TICKETS,
-                    payload:response
+                    payload:response.data
                 })
                 dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
             }
@@ -104,5 +104,21 @@ export const storePagination = (page,pageSize)=>{
             type: STORE_PAGINATION,
             payload: { page: page, pageSize: pageSize }
         })
+    }
+}
+
+export const uploadAttachments = (files)=>{
+    return (dispatch) => {
+        uploadAttachmentsTicketService(files).then((response)=>{
+            if(response && response.data && Array.isArray(response.data)){
+                dispatch({
+                    type: 'UPLOAD_ATTACHMENTS',
+                    payload: response.data
+                })
+                 dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+            }
+        }).catch((err)=>{
+            dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+        })  
     }
 }

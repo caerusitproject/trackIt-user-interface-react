@@ -64,6 +64,24 @@ export const YellowDot = styled.span`
   margin-right: 8px;
 `;
 
+export const GreenDot = styled.span`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #3be051ff;
+  border-radius: 50%;
+  margin-right: 8px;
+`;
+
+export const RedDot = styled.span`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #e64219ff;
+  border-radius: 50%;
+  margin-right: 8px;
+`;
+
 export const ResponsiveTableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;

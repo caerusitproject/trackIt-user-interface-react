@@ -112,9 +112,9 @@ export const deleteTicketService = (ticketId)=>{
                  Authorization:`Bearer ${token}`
            });
            if(response && response.status){
-            resolve(response.data)
+            resolve(response)
            }else{
-                reject(response.data)
+                reject(response)
            }
         }catch(err){
              reject(err)
@@ -148,6 +148,27 @@ export const editTicketService = (data,ticketId)=>{
         try{
            let response = await api.patch(`/api/v1/tickets/${ticketId}`,data,{
                 Authorization:`Bearer ${token}`
+           });
+           if(response && response.status){
+            resolve(response.data)
+           }else{
+                reject(response.data)
+           }
+        }catch(err){
+             reject(err)
+        }
+    })
+        
+}
+
+export const uploadAttachmentsTicketService = (files)=>{
+    return new Promise (async(resolve,reject)=>{
+        try{
+           let response = await api.post(`/api/v1/files/temp/drafts/${xCorrelationId}`,files,{
+                Authorization:`Bearer ${token}`,
+                 headers: {
+                    "Content-Type": "multipart/form-data",
+                },
            });
            if(response && response.status){
             resolve(response.data)

@@ -34,6 +34,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {createTicketService,viewAllTicketService,editTicketService} from "../../services/tickets.services"
 import {getChangedFields} from "../../Config/utils"
 import ListItemText from '@mui/material/ListItemText';
+import {formatDocuments} from "../../Config/utils";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -161,6 +162,7 @@ export default function TicketPropertiesDialog() {
   // const allTickets=useSelector((state)=>state.ticket.viewallTickets)
   const editedTicket =useSelector((state)=>state.ticket.editedTicket)
   const editTicketId =useSelector((state)=>state.ticket.editTicketId)
+  const attachments = useSelector((state) => state.ticket.attachments);
   const editStatus =useSelector((state)=>state.ticket.editStatus)
   const {allUsers}=useSelector((state)=>state.ticket);
   const [employeeObj, setEmployeeObj] = useState(null)
@@ -207,7 +209,7 @@ export default function TicketPropertiesDialog() {
 
   React.useEffect(()=>{
     if(editedTicket && editedTicket !=null && typeof editStatus == 'string'){
-      if(editStatus && editStatus == 'EDIT'){
+      if(editStatus && editStatus == 'EDIT' && allUsers != null && Array.isArray(allUsers)){
         setSoftCopyObj({...editedTicket})
         setTicketvalue({...ticketvalue,
             assignee:editedTicket?.assigneeUserId,
@@ -233,14 +235,15 @@ export default function TicketPropertiesDialog() {
         })
         setEndDate(editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "");
         setStartDate(editedTicket.startDate ? dayjs(editedTicket.startDate) : "");
-        let filterDetail=allUsers.find((element)=> element.email == editedTicket.requester);
+        let filterDetail=allUsers?.find((element)=> element.email == editedTicket.requester);
+        console.log('individual object__',filterDetail)
         setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
       }
     }else if(editedTicket == null){
         resetFunctionform()
     }
   
-  },[editedTicket,editStatus])
+  },[editedTicket,editStatus,allUsers])
 
   React.useEffect(() => {
     let filteredEmail=allUsers?.map((item)=>item.email);
@@ -248,7 +251,8 @@ export default function TicketPropertiesDialog() {
   }, [allUsers])
   
 
-  console.log('all users for render__',editedTicket,editStatus,editTicketId)
+  console.log('all users for render__',editedTicket,editStatus,editTicketId,allUsers)
+  console.log('attachments___',attachments)
 
 const RequiredLabel = ({label,mandatory}) => (
   <div
@@ -331,7 +335,12 @@ const handleSaveChanges = (e)=>{
   let wrappedEmail= ticketvalue.additionalEmails.map((item)=>item.value)
   let formvalidate=validate();
   if(formvalidate && formvalidate.status == "success"){
-  let ticketObj ={
+  let documentsArray=[];
+  if(attachments && Array.isArray(attachments) && attachments.length > 0){
+    documentsArray={data:[...attachments]};
+    console.log('formatted documents___',formatDocuments(attachments),attachments);
+  }
+   let ticketObj ={
     assigneeUserId:ticketvalue.assignee,
     createdBy:`${userProfileData?.firstName} ${userProfileData?.lastName}`,
     requester: ticketvalue.requester,
@@ -350,19 +359,19 @@ const handleSaveChanges = (e)=>{
     ticketDetail: {
     "content": ""
     },
-    // additionalEmails: [...wrappedEmail],
+    userEmailIdToNotify: [...wrappedEmail],
     // createdDate: "",
     startDate:new Date(startDate),
     dueDate:new Date(endDate),
     // startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") :"",
     // endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") :"",
     // dueBy: ticketvalue.dueBy,
-    documents: file && file.length > 0 ? file.map((item)=> item.file) : [],
+    documents:attachments && Array.isArray(attachments) && attachments.length > 0 ? formatDocuments(attachments) : [],
   }
   // dispatch(actions.createTicket(obj))
   if(editStatus && editStatus == 'CREATE'){
     createTicketService(ticketObj).then((res)=>{
-       if(res && (res?.status)){
+       if(res && (res?.success)){
          resetFunctionform()
          dispatch(actions.closeFulldialogue())
          dispatch(actions.openSnackbar({message:res?.message,status:'success'}))
@@ -386,7 +395,7 @@ const handleSaveChanges = (e)=>{
     let diffKeyMaker=getChangedFields(softCopyObj,ticketObj);
     console.log('see the diff___',diffKeyMaker,softCopyObj)
       editTicketService(diffKeyMaker,editTicketId).then((response)=>{
-        if(response && response.status){
+        if(response && response.success){
          dispatch(actions.closeFulldialogue())
          dispatch(actions.viewAllTicket(0,5))
          dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
@@ -426,11 +435,15 @@ const resetFunctionform = ()=>{
     description: "",
     additionalEmails: [],
     // createdDate: "",
-    startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") :"",
-    endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") :"",
+    // startDate: startDate ? dayjs(startDate).format("YYYY-MM-DD") :"",
+    // endDate: endDate ? dayjs(endDate).format("YYYY-MM-DD") :"",
+    startDate: dayjs(),
+    endDate: dayjs().add(1, "day"),
     dueBy: ticketvalue.dueBy,
     attachments: [],
   })
+  setStartDate(dayjs());
+  setEndDate(dayjs().add(1, "day"));
   setFile([]);
   setEmployeeObj(null)
 }
@@ -875,22 +888,33 @@ const resetFunctionform = ()=>{
               <Typography fontWeight="bold">Attachments</Typography>
               <label style={{ color: "#d9534f", cursor: "pointer" }}>
                 Browse Files
-                <input type="file"
-                 onChange={(e)=>{
-                   const selectedFiles = Array.from(e.target.files).map((file) => {
-                    return {
-                      file,
-                      preview: URL.createObjectURL(file), // For viewing images/files
-                    };
-                  });
-                  setFile(selectedFiles);
-                  
-                  console.log('files___',selectedFiles.map((item)=> item.file))
-                  // e.preventDefault();
-                 }}
-                hidden 
-                multiple
-                />
+                   <input
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+
+                        // ✅ Step 1: Create preview list (for UI)
+                        const selectedFiles = files.map((file) => ({
+                          file,
+                          preview: URL.createObjectURL(file),
+                        }));
+                        setFile(selectedFiles);
+
+                        // ✅ Step 2: Build FormData
+                        const formData = new FormData();
+                        files.forEach((file) => {
+                          formData.append("files", file); // key name must match backend field
+                        });
+
+                        // ✅ Step 3: Dispatch Redux action (sending FormData)
+                        dispatch(actions.uploadAttachments(formData));
+
+                        console.log("files___", files);
+                      }}
+                    />
+
               </label>{" "}
               or Drag files here | <span style={{ fontSize: "0.9em" }}>Max size: 50 MB.</span>
             </Box>

@@ -29,7 +29,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
 import jsonData from "../../db.json"
 import DeleteIcon from '@mui/icons-material/Delete';
-import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper } from "../../styled_components/requesttable.styled";
+import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper,GreenDot,RedDot } from "../../styled_components/requesttable.styled";
 import { useSelector,useDispatch } from "react-redux";
 import * as actions from "../../stores/actions";
 import dayjs from "dayjs";
@@ -209,12 +209,17 @@ const columns = useMemo(
         accessorKey: "id",
         header: "Id",
         size: 100,
-        Cell: ({ cell }) => (
-          <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <YellowDot />
-            {cell.getValue()}
-          </Box>
-        ),
+        Cell: ({ cell }) => {
+          let priority=cell.row.original.priority.toLowerCase();
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              {priority === 'high' && <RedDot />}
+              {priority === 'medium' && <YellowDot />}
+              {priority === 'low' && <GreenDot />}
+              {cell.getValue()}
+            </Box>
+          );
+      },
       },
        {
         accessorKey: "status",
@@ -318,6 +323,8 @@ const handleAgreedAction = async()=>{
   try{
     deleteTicketService(ticketId).then((res)=>{
       if(res && res?.status){
+        dispatch(actions.openSideDrawer(``, false));
+        dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
         dispatch(actions.openSnackbar({message:'Deleted Successfully',status:"success"}))
       }
     }).catch((err)=>{
@@ -357,7 +364,7 @@ const handleAgreedAction = async()=>{
                   backgroundColor: "#f5f5f5",
                 },
               }}
-              onClick={() => window.open("https://github.com", "_blank")}
+              onClick={() => window.location.reload()}
               >
                 <RefreshIcon sx={{ color: "#000000" }} />
               </IconButton>

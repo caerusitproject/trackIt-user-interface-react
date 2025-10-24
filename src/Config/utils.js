@@ -77,3 +77,27 @@ export const getChangedFields=(original, updated)=>{
 
   return changed;
 }
+
+
+export function formatDocuments(data) {
+  if (!Array.isArray(data)) return [];
+
+  return data.map((item) => {
+    // Extract file extension (after last dot)
+    const extension = item.fileUrl.split(".").pop().toLowerCase();
+
+    // Convert size (bytes) to human-readable format
+    const bytes = item.size || 0;
+    let sizeStr;
+    if (bytes < 1024) sizeStr = `${bytes} B`;
+    else if (bytes < 1024 * 1024)
+      sizeStr = `${(bytes / 1024).toFixed(2)} KB`;
+    else sizeStr = `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+
+    return {
+      docType: extension,        // e.g., 'pdf', 'xlsx'
+      docSize: sizeStr,          // e.g., '12.34 KB'
+      docUrl: item.fileUrl,      // full or relative URL
+    };
+  });
+}
