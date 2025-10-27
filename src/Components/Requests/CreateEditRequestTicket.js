@@ -226,7 +226,7 @@ export default function TicketPropertiesDialog() {
             group: editedTicket.group ? editedTicket.group : "",
             technician: editedTicket.technician ? editedTicket.technician :"",
             description: "",
-            additionalEmails: [],
+            additionalEmails: editedTicket.userEmailIdToNotify.length > 0 ?  editedTicket.userEmailIdToNotify.map((item)=> ({value: item,label: item})) : [],
             // createdDate: "",
             startDate: editedTicket.startDate ? dayjs(editedTicket.startDate) : "",
             endDate: editedTicket.dueDate ? dayjs(editedTicket.dueDate) : "",
