@@ -319,7 +319,7 @@ const handleChangeRowsPerPage = (e) => {
   setPagination({ pageIndex: 0, pageSize: newSize });
 };
 
-const handleAgreedAction = async()=>{
+const handleDeleteAgreedAction = async()=>{
   try{
     deleteTicketService(ticketId).then((res)=>{
       if(res && res?.status){
@@ -457,7 +457,7 @@ const handleAgreedAction = async()=>{
     }
 </Box>
 
-    <ConfirmationDialog agreedAction={handleAgreedAction} />
+    {/* <ConfirmationDialog agreedAction={handleDeleteAgreedAction} /> */}
       <FilterDialogue
         open={open}
         setOpen={setOpen}

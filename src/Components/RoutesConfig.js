@@ -13,7 +13,7 @@ const TicketDetails = lazy(() => import('../Components/Requests/TicketDetails/Ti
 const AccountDetails = lazy(() => import('../Components/HomePage/AccountDetails'));
 const FormBuilder = lazy(() => import('../Components/HomePage/FormBuilder'))
 const AssetsViewer = lazy(() => import('../Components/Assets/AssetsNavigation'))
-const AssetMenuBuilder = lazy(() => import('../Components/Assets/AssetMenuBuilder'))
+const AssetMenuBuilder = lazy(() => import('./Assets/CategorySubcategoryBuilder'))
 const SolutionMain = lazy(() => import('../Components/Solutions/SolutionMain'))
 
 
