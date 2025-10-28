@@ -1,22 +1,34 @@
 // src/reducers/userReducer.js
 const storedUser = localStorage.getItem("user");
 const initialState = {
- assetsTable:null,
+ categories:null,
+ subcategories:null,
+//  status:null,
+//  opener:false,
+//  collapsed: false,
+//  isAuthenticated: storedUser ? true : false,
+//  user: storedUser ? JSON.parse(storedUser) : null,
+//  drawerMessage:null,
+//  toggle:false
 };
 
-export const assetsReducers = (state = initialState, action) => {
+export const categorySubCategoryReducers = (state = initialState, action) => {
   switch (action.type) {
- 
-    case 'VIEW_ASSETS':
-      return { 
-        ...state, 
-        assetsTable:action.payload
-    };
-    // case 'VIEW_SUB_CATEGORIES':
+    // case 'CREATE_CATEGORY_ITEM':
     //   return { 
     //     ...state, 
-    //     subcategories:action.payload
-    // };
+    //     categories: [...state.categories, action.payload],
+    //   };
+    case 'VIEW_CATEGORIES':
+      return { 
+        ...state, 
+        categories:action.payload
+    };
+    case 'VIEW_SUB_CATEGORIES':
+      return { 
+        ...state, 
+        subcategories:action.payload
+    };
     // case "LOGIN_SUCCESS":
     //   localStorage.setItem('user',JSON.stringify(action.payload))
     //   return { ...state, isAuthenticated: true, user: action.payload };

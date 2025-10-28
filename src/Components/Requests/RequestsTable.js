@@ -137,6 +137,10 @@ export default function RequestsTable() {
   //   // fetchPage(pagination.pageIndex, pagination.pageSize);
   //    setRows(jsonData.posts);
   // }, [pagination,allTickets]);
+
+  useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [dispatch]);
   
   useEffect(() => {
     dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));

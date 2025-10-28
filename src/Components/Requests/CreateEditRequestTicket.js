@@ -237,6 +237,28 @@ export default function TicketPropertiesDialog() {
         setStartDate(editedTicket.startDate ? dayjs(editedTicket.startDate) : "");
         let filterDetail=allUsers?.find((element)=> element.email == editedTicket.requester);
         console.log('individual object__',filterDetail)
+
+        if (editedTicket.documents && editedTicket.documents.length > 0) {
+            const fileData = editedTicket.documents.map((doc) => {
+              const fileName = doc.docUrl.split("/").pop();
+              return {
+                file: {
+                  name: fileName,
+                  type: doc.docType.includes("jpg") || doc.docType.includes("png")
+                    ? `image/${doc.docType}`
+                    : `application/${doc.docType}`,
+                  size: doc.docSize,
+                  url: doc.docUrl,
+                  docId: doc.id,
+                },
+                preview: doc.docUrl,
+              };
+            });
+            setFile(fileData);
+          } else {
+            setFile([]);
+          }
+
         setEmployeeObj(filterDetail && filterDetail instanceof Object ? filterDetail : {})
       }
     }else if(editedTicket == null){
@@ -448,24 +470,46 @@ const resetFunctionform = ()=>{
   setEmployeeObj(null)
 }
 
- const handleDownload = (file) => {
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleRemoveFiles = (filex)=>{
-    console.log(filex,file)
-    if(filex){
-      let deleteFile=file.filter((item)=> item.file.name != filex.name)
-      setFile([...deleteFile])
-    }else{
-      return
-    }
+const handleDownload = (file) => {
+  if (file.url) {
+    // Backend file
+    const link = document.createElement("a");
+    link.href = file.url.startsWith("http") 
+      ? file.url 
+      : `${process.env.REACT_APP_API_BASE_URL}${file.url}`; // prepend API base if needed
+    link.download = file.name;
+    link.target = "_blank";
+    link.click();
+  } else {
+    // Locally uploaded file
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(file);
+    link.download = file.name;
+    link.click();
   }
+};
+const handleRemoveFiles = (file) => {
+  setFile((prev) => prev.filter((f) => f.file.name !== file.name));
+};
+
+//  const handleDownload = (file) => {
+//     const url = URL.createObjectURL(file);
+//     const a = document.createElement("a");
+//     a.href = url;
+//     a.download = file.name;
+//     a.click();
+//     URL.revokeObjectURL(url);
+//   };
+
+  // const handleRemoveFiles = (filex)=>{
+  //   console.log(filex,file)
+  //   if(filex){
+  //     let deleteFile=file.filter((item)=> item.file.name != filex.name)
+  //     setFile([...deleteFile])
+  //   }else{
+  //     return
+  //   }
+  // }
 
   return (
     <Dialog 
@@ -937,17 +981,27 @@ const resetFunctionform = ()=>{
             <FileOverlay className="overlay">
               <IconButton
                 title="View"
-                onClick={() => window.open(item.preview, "_blank")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if(editStatus && editStatus == 'CREATE'){
+                    console.log('VIEW',item.preview)
+                    //  window.open(item.preview, "_blank")
+                  }else if(editStatus == 'EDIT'){
+                    let fileName = item.file.url.split("/").pop();
+                    dispatch(actions.fetchIndividualDocument(editedTicket?.id, fileName))
+                    console.log("You are in edit mode, Api call would be here", fileName);
+                  }
+                }}
               >
                 <VisibilityIcon/>
 
               </IconButton>
-              <IconButton
+              {/* <IconButton
                 title="Download"
                 onClick={() => handleDownload(item.file)}
               >
                 <FileDownloadIcon/>
-              </IconButton>
+              </IconButton> */}
                <IconButton
                 title="Download"
                 onClick={() => handleRemoveFiles(item.file)}

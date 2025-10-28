@@ -12,8 +12,8 @@ const EditForm = lazy(() => import('./Requests/CreateEditRequestTicket'));
 const TicketDetails = lazy(() => import('../Components/Requests/TicketDetails/TicketBody'));
 const AccountDetails = lazy(() => import('../Components/HomePage/AccountDetails'));
 const FormBuilder = lazy(() => import('../Components/HomePage/FormBuilder'))
-const AssetsViewer = lazy(() => import('../Components/Assets/AssetsNavigation'))
-const AssetMenuBuilder = lazy(() => import('./Assets/CategorySubcategoryBuilder'))
+const AssetsViewer = lazy(() => import('./Assets/AssetsTable'))
+const CategorySubcategoryBuilder = lazy(() => import('./CategorySubcategory/CategorySubcategoryBuilder'))
 const SolutionMain = lazy(() => import('../Components/Solutions/SolutionMain'))
 
 
@@ -26,7 +26,7 @@ export const routes = [
   { path: "/solution", element: <SolutionMain />, roles: ["user"] },
   { path: "/milestone-builder", element: <FormBuilder />, roles: ["user"] },
   { path: "/assets", element: <AssetsViewer />, roles: ["user", "admin"] },
-  { path: "/asset-menu-builder", element: <AssetMenuBuilder />, roles: ["user"] },
+  { path: "/asset-menu-builder", element: <CategorySubcategoryBuilder />, roles: ["user"] },
   { path: "/request/ticket/:ticketId", element: <TicketDetails />, roles: ["user", "admin"] },
   { path: "/forget_password", element: <ForgetPassword /> },
   { path: "/reset_password", element: <ResetPassword /> },

@@ -1,9 +1,8 @@
-import { resolve } from "path-browserify"
 import api from "../Config/axiosinstance"
 let token=localStorage.getItem('access-token')
 let xCorrelationId=localStorage.getItem('X-Correlation-Id')
 
-export const createOrEditAssetService = (data) => {
+export const createOrEditAssetsItemService = (data) => {
     return new Promise (async(resolve, reject)=>{
         try{
             let response;

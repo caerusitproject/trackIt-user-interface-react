@@ -20,8 +20,8 @@ import * as actions from '../../stores/actions'
 import ConfirmationDialog from "../../Config/ConfirmationDialogue";
 
 const CategorySubcategoryBuilder = () => {
-  const categories = useSelector((state) => state.assets.categories);
-  const subcategories = useSelector((state) => state.assets.subcategories);
+  const categories = useSelector((state) => state.CategorySubcategory.categories);
+  const subcategories = useSelector((state) => state.CategorySubcategory.subcategories);
   const dispatch = useDispatch();
   const [expanded, setExpanded] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -245,6 +245,11 @@ const handledeleteCategoryAction = () => {
       </Box>
 
       {/* Accordions */}
+      {categories && categories.length === 0 && (
+        <Typography style={{textAlign:"center"}} variant="h6" color="text.secondary">
+          No category items found. Click "Add Category Item" to create one.
+        </Typography>
+      )}
       {categories && categories.length > 0 && categories.map((menu) => (
         <Accordion
           key={menu.id}
