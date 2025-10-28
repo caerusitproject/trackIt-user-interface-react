@@ -27,7 +27,15 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FolderIcon from "@mui/icons-material/Folder";
 import FilterDialogue from "./FilterDialogue";
-import { HeaderBar, Toolbar, YellowDot } from "../../styled_components/requesttable.styled";
+import jsonData from "../../db.json"
+import DeleteIcon from '@mui/icons-material/Delete';
+import { HeaderBar, Toolbar, YellowDot,ResponsiveTableWrapper,GreenDot,RedDot } from "../../styled_components/requesttable.styled";
+import { useSelector,useDispatch } from "react-redux";
+import * as actions from "../../stores/actions";
+import dayjs from "dayjs";
+import GlobalLoader from "../../Config/GlobalLoader";
+import {deleteTicketService} from "../../services/tickets.services"
+import ConfirmationDialog from "../../Config/ConfirmationDialogue"
 
 
 function TablePaginationActions(props) {
@@ -74,9 +82,15 @@ TablePaginationActions.propTypes = {
 };
 
 export default function RequestsTable() {
+  const allTickets=useSelector((state)=>state.ticket.viewallTickets)
+  const actionStatus =useSelector((state)=>state.ticket.actionStatus)
+  
+  const dispatch=useDispatch();
   const navigate = useNavigate();
-
+  const {ticketObj} = useSelector((state)=> state.ticket)
+  const [ticketId, setTicketId] = useState(null)
   const [rows, setRows] = useState([]);
+  const [ticketsAll, setTicketsAll] = useState(null)
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -84,6 +98,11 @@ export default function RequestsTable() {
   const [checked, setChecked] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [cachedTickets, setCachedTickets] = useState(null);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
 
   // ✅ Fetch data with pagination
   const fetchPage = async (page, pageSize) => {
@@ -97,7 +116,8 @@ export default function RequestsTable() {
       if (!resp.ok) throw new Error("Failed to fetch data");
 
       const json = await resp.json();
-      setRows(json);
+      // setRows(json);
+      setRows(jsonData.posts);
 
       const total = resp.headers.get("X-Total-Count") || json.total || 15;
       setTotalCount(Number(total));
@@ -108,21 +128,54 @@ export default function RequestsTable() {
     }
   };
 
-  // MRT handles pagination, so listen to page changes
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 5,
-  });
 
+// MRT handles pagination, so listen to page changes
+
+// useEffect(() => {
+  //   dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize))
+  //    setTotalCount(allTickets?.totalElements);
+  //   // fetchPage(pagination.pageIndex, pagination.pageSize);
+  //    setRows(jsonData.posts);
+  // }, [pagination,allTickets]);
+  
+  useEffect(() => {
+    dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+    dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
+  }, [dispatch,pagination.pageIndex, pagination.pageSize]);
+  
+  useEffect(() => {
+  let ignore = false;
+
+  const fetchData = async () => {
+    if (ignore) return;
+    await dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+    await dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
+  };
+
+  fetchData();
+
+  return () => { ignore = true; };
+}, [pagination]);
+
+useEffect(() => {
+  if (!allTickets || allTickets.length === 0) {
+    dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize))
+    dispatch(actions.storePagination(pagination.pageIndex, pagination.pageSize));
+  }
+}, [dispatch]);
+
+console.log('show all tickets__',allTickets)
   // useEffect(() => {
-  //   fetchPage(pagination.pageIndex, pagination.pageSize);
-  // }, [pagination]);
+  //   // fetchPage(pagination.pageIndex, pagination.pageSize);
+  //    setRows(jsonData.posts);
+  //    console.log('json data____',jsonData.posts)
+  // }, [jsonData]);
 
   // ✅ Define columns
-  const columns = useMemo(
+const columns = useMemo(
     () => [
       {
-        id: "select", // for checkbox selection
+        id: "select",
         header: "",
         enableColumnActions: false,
         enableSorting: false,
@@ -131,6 +184,9 @@ export default function RequestsTable() {
       {
         accessorKey: "mailIcon",
         header: "",
+        enableColumnActions: false,
+        enableSorting: false,
+        size: 50, // Force min sizes to expand table
         Cell: () => (
           <IconButton size="small">
             <MailIcon fontSize="small" />
@@ -138,17 +194,11 @@ export default function RequestsTable() {
         ),
       },
       {
-        accessorKey: "editIcon",
-        header: "",
-        Cell: () => (
-          <IconButton size="small">
-            <EditIcon fontSize="small" />
-          </IconButton>
-        ),
-      },
-      {
         accessorKey: "noteIcon",
         header: "",
+        enableColumnActions: false,
+        enableSorting: false,
+        size: 50,
         Cell: () => (
           <IconButton size="small">
             <SummarizeIcon fontSize="small" />
@@ -158,24 +208,107 @@ export default function RequestsTable() {
       {
         accessorKey: "id",
         header: "Id",
-        Cell: ({ cell }) => (
-          <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <YellowDot />
-            {cell.getValue()}
-          </Box>
-        ),
+        size: 100,
+        Cell: ({ cell }) => {
+          let priority=cell.row.original.priority.toLowerCase();
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              {priority === 'high' && <RedDot />}
+              {priority === 'medium' && <YellowDot />}
+              {priority === 'low' && <GreenDot />}
+              {cell.getValue()}
+            </Box>
+          );
+      },
+      },
+       {
+        accessorKey: "status",
+        header: "Status",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
       },
       {
-        accessorKey: "firstName",
-        header: "First Name",
+        accessorKey: "priority",
+        header: "Priority",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
       },
       {
-        accessorKey: "lastName",
-        header: "Last Name",
+        accessorKey: "subject",
+        header: "Subject",
+        size: 200, // Wider for potential long text
+        muiTableBodyCellProps: { sx: { whiteSpace: 'nowrap' } }, // Prevent wrapping to force width
+      },
+      {
+        accessorKey: "requester",
+        header: "Requestor",
+        size: 150,
+      },
+      {
+        accessorKey: "assigneeUserId",
+        header: "Assigned To",
+        size: 150,
+      },
+      {
+        accessorKey: "startDate",
+        header: "Start Date",
+        Cell: ({ cell }) => {
+          const value = cell.getValue();
+          return value ? dayjs(value).format('YYYY-MM-DD') : "—";
+        },
+        size: 120,
+      },
+      { accessorKey: "dueDate",
+        header: "End Date",
+        size: 120, 
+         Cell: ({ cell }) => {
+          const value = cell.getValue();
+          return value ? dayjs(value).format('YYYY-MM-DD') : "—";
+        },
+      },
+       {
+        accessorKey: "editIcon",
+        header: "Actions",
+        enableColumnActions: false,
+        enableSorting: false,
+        size: 50,
+        Cell: ({cell}) => {
+          let ticketId=cell.row.original.id
+          return(
+            <div style={{display:"flex",justifyContent:"center"}}>
+          <IconButton
+            onClick={(e)=>{
+                e.stopPropagation()
+                if (allTickets && allTickets == null && allTickets?.content.length == 0) return;
+                dispatch(actions.openFulldialogue())
+                dispatch(actions.selectTicketForEdit(ticketId));
+                dispatch(actions.editStatusChecker('EDIT'));
+             }}
+              size="small">
+            <EditIcon 
+            fontSize="small" />
+          </IconButton>
+          <IconButton 
+             onClick={(e)=>{
+                e.stopPropagation()
+                setTicketId(ticketId)
+                dispatch(actions.openSideDrawer(`You are about to delete this ticket id ${ticketId}`, true));
+                //  alert('now this ticket id will be deleted !')
+             }}
+          >
+             <DeleteIcon
+              fontSize="small"
+             />
+          </IconButton>
+          </div>
+          )
+        },
       },
     ],
     []
   );
+
+  console.log('table creation__',allTickets,actionStatus)
 
  const handleChangePage = (_, newPage) => {
   setPagination((prev) => ({ ...prev, pageIndex: newPage }));
@@ -185,7 +318,24 @@ const handleChangeRowsPerPage = (e) => {
   const newSize = parseInt(e.target.value, 10);
   setPagination({ pageIndex: 0, pageSize: newSize });
 };
-const totalPages = Math.ceil(totalCount / pagination.pageSize);
+
+const handleDeleteAgreedAction = async()=>{
+  try{
+    deleteTicketService(ticketId).then((res)=>{
+      if(res && res?.status){
+        dispatch(actions.openSideDrawer(``, false));
+        dispatch(actions.viewAllTicket(pagination.pageIndex, pagination.pageSize));
+        dispatch(actions.openSnackbar({message:'Deleted Successfully',status:"success"}))
+      }
+    }).catch((err)=>{
+       dispatch(actions.openSnackbar({message:err.message,status:"error"}))
+    })
+  }catch(err){
+     dispatch(actions.openSnackbar({message:err.message,status:"error"}))
+     
+  }
+}
+// const totalPages = Math.ceil(totalCount / pagination.pageSize);
   return (
     <Box>
       {/* ✅ Custom Header */}
@@ -196,7 +346,7 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
               <TablePagination
                 component="div"
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                count={totalCount}
+                count={totalCount || allTickets?.totalElements}
                 rowsPerPage={pagination.pageSize}
                 page={pagination.pageIndex}
                 onPageChange={handleChangePage}
@@ -214,7 +364,7 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
                   backgroundColor: "#f5f5f5",
                 },
               }}
-              onClick={() => window.open("https://github.com", "_blank")}
+              onClick={() => window.location.reload()}
               >
                 <RefreshIcon sx={{ color: "#000000" }} />
               </IconButton>
@@ -263,9 +413,14 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
       </Toolbar>
 
       {/* ✅ Material React Table */}
+
+<Box sx={{ overflowX: 'auto', maxWidth: '70vw', display: 'block' }}> 
+  {!allTickets ? (
+  <GlobalLoader/>
+    ) : ( 
       <MaterialReactTable
         columns={columns}
-        data={rows}
+        data={allTickets?.content ?? []}
         state={{
           isLoading: loading,
           pagination,
@@ -275,17 +430,34 @@ const totalPages = Math.ceil(totalCount / pagination.pageSize);
         enableRowSelection
         enablePagination={false}
         manualPagination
-        rowCount={totalCount}
-        // onPaginationChange={setPagination}
+        rowCount={totalCount || allTickets?.totalElements} 
+        muiTableContainerProps={{
+          sx: {
+            minWidth: '700px',  // Adjust this based on your columns (e.g., 'max-content' to auto-fit widest content)
+            maxWidth: '70vw',   // Prevent capping
+            // overflowX: 'none',  // Ensure inner content can overflow
+          },
+        }}
+        muiTablePaperProps={{
+          sx: {
+            boxShadow: 'none',  // Removes elevation that might clip
+            overflow: 'visible',  // Allows overflow to bubble up
+            width: '100%',      // Fits parent but allows child overflow
+          },
+        }}
         muiTableBodyRowProps={({ row }) => ({
           onClick: () => navigate(`/request/ticket/${row.original.id}`),
-          sx: { cursor: "pointer" },
+          sx: { cursor: 'pointer' },
         })}
         muiToolbarAlertBannerProps={
-          error ? { color: "error", children: error } : undefined
+          error ? { color: 'error', children: error } : undefined
         }
       />
+    )
+    }
+</Box>
 
+    {/* <ConfirmationDialog agreedAction={handleDeleteAgreedAction} /> */}
       <FilterDialogue
         open={open}
         setOpen={setOpen}

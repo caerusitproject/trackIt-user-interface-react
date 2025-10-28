@@ -2,15 +2,14 @@ import React, { useState } from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
 import { useSelector } from "react-redux";
-import AddAssetDialog from "../Requests/CreateAsset";
+import SolutionTable from "./SolutionTable";
 
-const AssetsNavigation = () => {
+const AssetsSolutionNavigation = () => {
   const menuBuildersOptions = useSelector(
     (state) => state.menubuilder.menusSubmenus
   );
 
   const [selectedSubmenu, setSelectedSubmenu] = useState("");
-  const [open, setOpen] = useState(false);
 
   const handleSelect = (event, itemId) => {
     setSelectedSubmenu(itemId);
@@ -21,7 +20,7 @@ const AssetsNavigation = () => {
       {/* Left TreeView Sidebar */}
       <Box
         sx={{
-          minWidth: 260,
+          minWidth: 235,
           borderRight: "1px solid #ddd",
           p: 2,
           bgcolor: "#fafafa",
@@ -34,7 +33,7 @@ const AssetsNavigation = () => {
             fontSize: "1.1rem",
           }}
         >
-          Assets
+          Topics
         </Typography>
 
         <SimpleTreeView
@@ -64,41 +63,10 @@ const AssetsNavigation = () => {
 
       {/* Right Content Panel */}
       <Box sx={{ flex: 1, p: 3 }}>
-        {selectedSubmenu ? (
-          <Paper
-            elevation={3}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              maxWidth: 500,
-              bgcolor: "white",
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              {selectedSubmenu} Workflow
-            </Typography>
-            <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
-              <Button variant="contained">
-                Add {selectedSubmenu}
-              </Button>
-              <Button variant="outlined">
-                Manage {selectedSubmenu}
-              </Button>
-            </Box>
-          </Paper>
-        ) : (
-          //<Typography variant="body1">
-          //</Typography>
-          <>
-         <Box sx={{ display: "flex", justifyContent: "flex-end", p:2 }}>
-          <Button onClick={() => setOpen(true)} variant="contained">Add Asset</Button>
-        </Box>
-        <AddAssetDialog open={open} onClose={() => setOpen(false)} />
-        </>
-        )}
+         <SolutionTable />
       </Box>
     </Box>
   );
 };
 
-export default AssetsNavigation;
+export default AssetsSolutionNavigation;

@@ -31,6 +31,8 @@ import { validateEmail, checkPasswordComplexity } from '../../Config/utils';
 import { loginUsersService } from '../../services/users.services';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { v4 as uuidv4 } from 'uuid';
+
 
 function Login() {
   const isAuthenticated = useSelector((state) => state.login.isAuthenticated);
@@ -76,7 +78,7 @@ function Login() {
               dispatch(actions.closeLoader());
               localStorage.setItem('access-token',(res?.data?.accessToken))
               localStorage.setItem('refresh-token',(res?.data?.refreshToken))
-
+              localStorage.setItem('X-Correlation-Id',(uuidv4().toString()))
               // store user data in local storage
               dispatch(actions.loginSucess(userData))
               // dispatch(actions.fetchUserDataProfile())
@@ -90,7 +92,7 @@ function Login() {
            
         })
   }else{
-    return
+     dispatch(actions.openSnackbar({message:validateForm?.message,status:'error'}))
   }
 
  }
@@ -101,12 +103,12 @@ function Login() {
   let enable = false;
   let message='';
 
-   if(value && !validateEmail(value?.email) && value?.email?.length == 0 ){
+   if(value && !validateEmail(value?.email) || value?.email?.length == 0 ){
       enable = true
       message= 'Format of email is invalid!'
     }
 
-    if(value && !checkPasswordComplexity(value?.password) && value?.password?.length == 0){
+    if(value && !checkPasswordComplexity(value?.password) || value?.password?.length == 0){
         enable = true
         message= 'Password format is not satisfactory!'
     }
@@ -247,7 +249,7 @@ function Login() {
                         disabled={value && value?.email?.length > 0 && value?.password?.length > 0 && value?.domain?.length > 0 ? false : true}
                         >Log In</Button>
                         <TextCenter>
-                        <small><Link to='/password_reset'>Forgot Password?</Link></small>
+                        <small><Link to='/forget_password'>Forgot Password?</Link></small>
                         <small>New to Track It <Link to = '/register-user'>Sign Up</Link></small>
                       </TextCenter>
                       </InputgroupButtons>

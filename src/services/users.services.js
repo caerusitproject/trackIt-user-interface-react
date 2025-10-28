@@ -63,6 +63,21 @@ export const logoutService=(data)=>{
     })
 }
 
+export const resetPasswordService=(data)=>{
+    return new Promise(async(resolve,reject)=>{
+        try{
+            let response = await api.post(`/auth/reset-password`,data);
+             if(response && Boolean(response?.data?.success) == true){
+                resolve(response?.data)
+            }else{
+                reject(response.data?.response?.data)
+            }
+        }catch(err){
+              reject(err.response?.data)
+        }
+    })
+}
+
 export const fetchUserProfileService=()=>{
     return new Promise(async(resolve,reject)=>{
         let userEmail=JSON.parse(localStorage.getItem('user'))

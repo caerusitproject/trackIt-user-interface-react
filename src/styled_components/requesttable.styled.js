@@ -8,6 +8,7 @@ export const HeaderBar = styled.div`
   border-bottom: 1px solid #ddd;
   font-weight: 500;
   gap: 8px;
+  max-width:70vw;
 `;
 
 export const Toolbar = styled.div`
@@ -17,6 +18,7 @@ export const Toolbar = styled.div`
   background: #f8f9fa;
   border-bottom: 1px solid #ddd;
   gap: 8px;
+  max-width:70vw;
 `;
 
 export const StyledTableContainer = styled(TableContainer)`
@@ -60,4 +62,52 @@ export const YellowDot = styled.span`
   background-color: #ffcd00;
   border-radius: 50%;
   margin-right: 8px;
+`;
+
+export const GreenDot = styled.span`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #3be051ff;
+  border-radius: 50%;
+  margin-right: 8px;
+`;
+
+export const RedDot = styled.span`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #e64219ff;
+  border-radius: 50%;
+  margin-right: 8px;
+`;
+
+export const ResponsiveTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Important: target the actual table rendered by MRT */
+  table {
+    min-width: 900px; /* 👈 adjust this based on number of columns */
+    border-collapse: collapse;
+  }
+
+  @media (max-width: 768px) {
+    table {
+      min-width: 700px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    table {
+      min-width: 600px;
+    }
+
+    th,
+    td {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+  }
 `;

@@ -20,7 +20,7 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ roles = [], element }) => {
   const user = JSON.parse(localStorage.getItem("user")); // or from context/provider
   const isAuthenticated = !!user;
-  const userRole = 'admin'; // e.g. "admin" | "user"
+  const userRole = 'user'; // e.g. "admin" | "user"
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
