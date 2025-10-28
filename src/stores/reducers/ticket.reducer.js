@@ -40,6 +40,9 @@ export const ticketReducers = (state = initialState, action) => {
     case 'UPLOAD_ATTACHMENTS':
       return { ...state, loading: true, attachments: action.payload };
 
+    case 'VIEW_INDIVIDUAL_DOCUMENT':
+      return { ...state, loading: true, attachments: action.payload };
+
     case 'SELECT_TICKET_FOR_EDIT':
        console.log('ticket reducers',state.viewallTickets)
       return { ...state, 

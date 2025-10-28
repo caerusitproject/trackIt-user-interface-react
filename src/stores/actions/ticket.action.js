@@ -1,4 +1,4 @@
-import {fetchAllEmailUsers,createTicketService,viewAllTicketService,filterAllTicketService,uploadAttachmentsTicketService} from "../../services/tickets.services"
+import {fetchAllEmailUsers,createTicketService,viewAllTicketService,filterAllTicketService,uploadAttachmentsTicketService,viewIndividualDocumentService} from "../../services/tickets.services"
 import * as actions from "../actions"
 export const FETCH_ALL_USERS = 'FETCH_ALL_USERS';
 export const CREATE_TICKET = 'CREATE_TICKET';
@@ -9,6 +9,7 @@ export const SELECT_TICKET_FOR_EDIT = 'SELECT_TICKET_FOR_EDIT';
 export const EDIT_STATUS_CHECK = 'EDIT_STATUS_CHECK';
 export const FILTER_ALL_TICKETS = 'FILTER_ALL_TICKETS';
 export const STORE_PAGINATION = 'STORE_PAGINATION';
+export const VIEW_INDIVIDUAL_DOCUMENT = 'VIEW_INDIVIDUAL_DOCUMENT';
 
 
 export const fetchallUsers = () => {
@@ -88,6 +89,30 @@ export const viewAllTicket = (page,pageSize)=>{
                     payload:response.data
                 })
                 dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+            }
+            else{
+                return
+            }
+        }).catch((err)=>{
+              dispatch(actions.openSnackbar({message:err?.message,status:'error'}))
+        })
+    }
+}
+
+export const fetchIndividualDocument = (ticketId, documentId)=>{
+    return (dispatch) => {
+        viewIndividualDocumentService(ticketId, documentId).then((response)=>{
+             if(response && response.data){
+                 const contentType = response.headers["content-type"] || "application/octet-stream";
+                 const blob = new Blob([response.data], { type: contentType });
+                const url = URL.createObjectURL(blob);
+                console.log('store individual document data__',response)
+                // dispatch(actions.openSnackbar({message:response?.message,status:'success'}))
+                window.open(url, "_blank")
+                // dispatch({
+                //     type:VIEW_INDIVIDUAL_DOCUMENT,
+                //     payload:response.data
+                // })
             }
             else{
                 return

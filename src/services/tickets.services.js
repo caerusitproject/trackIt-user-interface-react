@@ -38,6 +38,26 @@ export const viewAllTicketService = (offset,limit)=>{
         
 }
 
+export const viewIndividualDocumentService = (ticketId, documentId)=>{
+    return new Promise (async(resolve,reject)=>{
+        try{
+           let response = await api.get(`/api/v1/files/tickets/${ticketId}/documents/${documentId}`,{
+                Authorization:`Bearer ${token}`,
+                responseType: "arraybuffer"
+           });
+           if(response && response.status){
+            resolve(response)
+           }else{
+            reject(response.data)
+           }
+        }catch(err){
+             reject(err)
+        }
+    })
+        
+}
+
+
 export const filterAllTicketService = (status,priority,category,subCategory,offset,limit)=>{
     return new Promise (async(resolve,reject)=>{
         try{
