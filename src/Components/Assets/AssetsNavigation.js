@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
 import { useSelector } from "react-redux";
+import AddAssetDialog from "../Requests/CreateAsset";
 
 const AssetsNavigation = () => {
   const menuBuildersOptions = useSelector(
@@ -9,6 +10,7 @@ const AssetsNavigation = () => {
   );
 
   const [selectedSubmenu, setSelectedSubmenu] = useState("");
+  const [open, setOpen] = useState(false);
 
   const handleSelect = (event, itemId) => {
     setSelectedSubmenu(itemId);
@@ -85,9 +87,14 @@ const AssetsNavigation = () => {
             </Box>
           </Paper>
         ) : (
-          <Typography variant="body1">
-            Select a submenu to view workflow
-          </Typography>
+          //<Typography variant="body1">
+          //</Typography>
+          <>
+         <Box sx={{ display: "flex", justifyContent: "flex-end", p:2 }}>
+          <Button onClick={() => setOpen(true)} variant="contained">Add Asset</Button>
+        </Box>
+        <AddAssetDialog open={open} onClose={() => setOpen(false)} />
+        </>
         )}
       </Box>
     </Box>
