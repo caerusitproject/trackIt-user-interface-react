@@ -16,7 +16,7 @@ import { alpha, styled } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import imageLogo from "../../assets/TMS_logo1.png";
+import CaerusLogo from "../../assets/CaerusLogo.png";
 import * as actions from "../../stores/actions";
 import DrawerSidebar from "./DrawerSidebar"; // ⬅ import the component you already built
 import { validateAvatarName } from "../../Config/utils";
@@ -111,7 +111,7 @@ export default function TopNavbar({ isMobile, setIsMobile }) {
             >
               {collapsed ? <MenuIcon /> : <HighlightOffIcon />}
             </IconButton>
-            <img src={imageLogo} alt="Logo" width="128px" />
+            <img src={CaerusLogo} alt="Logo" width="128px" />
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />

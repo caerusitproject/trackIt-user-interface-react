@@ -32,6 +32,7 @@ import { loginUsersService } from '../../services/users.services';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { v4 as uuidv4 } from 'uuid';
+import CaerusLogo from '../../assets/CaerusLogo.png'
 
 
 function Login() {
@@ -128,8 +129,9 @@ function Login() {
       <LoginPageBg>
           <LoginCard>
             <LoginAppTitle>
+            <img src={CaerusLogo} alt='caerus logo'/>
               {/* Track&nbsp;&nbsp;<span>It</span> */}
-              <b>TMS</b>
+              {/* <b>TMS</b> */}
             </LoginAppTitle>
 
             <TrackColorline>
