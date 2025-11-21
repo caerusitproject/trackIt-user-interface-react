@@ -37,66 +37,66 @@ const CategorySubcategoryBuilder = () => {
     dispatch(actions.viewCategories())
   }, []);
   // Example Data
-  const [menuData, setMenuData] = useState([
-    {
-      id: 1,
-      title: "Workstation",
-      menutype:"main-menu",
-      description: "Computing devices for work",
-      submenus: [
-        {
-          id: 101,
-          title: "Laptops",
-          menutype:"sub-menu",
-          description: "Portable computers for mobile work",
-        },
-        {
-          id: 102,
-          title: "Desktops",
-          menutype:"sub-menu",
-          description: "Stationary computers for office use",
-        },
-        {
-          id: 103,
-          title: "Tablets",
-          menutype:"sub-menu",
-          description: "Touch screen devices for mobility",
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "Softwares",
-      menutype:"main-menu",
-      description: "Essential office tools and equipment",
-      submenus: [
-        {
-          id: 201,
-          title: "OS",
-          menutype:"sub-menu",
-          description: "Pens, papers, and other supplies",
-        },
-        {
-          id: 202,
-          title: "Building Blocks",
-          menutype:"sub-menu",
-          description: "Desks, chairs, and storage units",
-        },
-         {
-          id: 203,
-          title: "Utilities",
-          menutype:"sub-menu",
-          description: "Desks, chairs, and storage units",
-        },
-      ],
-    },
-  ]);
+  // const [menuData, setMenuData] = useState([
+  //   {
+  //     id: 1,
+  //     title: "Workstation",
+  //     menutype:"main-menu",
+  //     description: "Computing devices for work",
+  //     submenus: [
+  //       {
+  //         id: 101,
+  //         title: "Laptops",
+  //         menutype:"sub-menu",
+  //         description: "Portable computers for mobile work",
+  //       },
+  //       {
+  //         id: 102,
+  //         title: "Desktops",
+  //         menutype:"sub-menu",
+  //         description: "Stationary computers for office use",
+  //       },
+  //       {
+  //         id: 103,
+  //         title: "Tablets",
+  //         menutype:"sub-menu",
+  //         description: "Touch screen devices for mobility",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Softwares",
+  //     menutype:"main-menu",
+  //     description: "Essential office tools and equipment",
+  //     submenus: [
+  //       {
+  //         id: 201,
+  //         title: "OS",
+  //         menutype:"sub-menu",
+  //         description: "Pens, papers, and other supplies",
+  //       },
+  //       {
+  //         id: 202,
+  //         title: "Building Blocks",
+  //         menutype:"sub-menu",
+  //         description: "Desks, chairs, and storage units",
+  //       },
+  //        {
+  //         id: 203,
+  //         title: "Utilities",
+  //         menutype:"sub-menu",
+  //         description: "Desks, chairs, and storage units",
+  //       },
+  //     ],
+  //   },
+  // ]);
 
-  React.useEffect(() => {
-    if(menuData && menuData.length > 0){
-      dispatch(actions.setMenuItems(menuData));
-    }
-  }, [menuData])
+  // React.useEffect(() => {
+  //   if(menuData && menuData.length > 0){
+  //     dispatch(actions.setMenuItems(menuData));
+  //   }
+  // }, [menuData])
   
 
   const handleExpand = (panel) => (event, isExpanded) => {

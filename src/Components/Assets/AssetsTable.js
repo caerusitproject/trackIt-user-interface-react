@@ -20,6 +20,7 @@ import * as actions from "../../stores/actions";
 const AssetsNavigation = () => {
   const dispatch = useDispatch();
   // const assets = useSelector((state) => state.assets.assetsTable);
+  const categories = useSelector((state) => state.CategorySubcategory.categories);
   const menuBuildersOptions = useSelector(
     (state) => state.menubuilder.menusSubmenus
   );
@@ -33,7 +34,7 @@ const AssetsNavigation = () => {
   useEffect(() => {
     // Fetch assets data or perform any necessary side effects
     dispatch(actions.viewAssets());
-    
+    dispatch(actions.viewCategories())
   }, []);
 
   const columns = useMemo(
@@ -91,17 +92,17 @@ const AssetsNavigation = () => {
         onSelectedItemsChange={handleSelect}
         sx={{ minHeight: 400 }}
       >
-        {menuBuildersOptions?.map((menu, index) => (
-          <TreeItem key={index} itemId={menu.title} label={menu.title}>
-            {menu.submenus?.map((submenu, idx) => (
+        {categories?.map((menu, index) => (
+          <TreeItem key={index} itemId={menu.id} label={menu.categoryName}>
+            {/* {menu.submenus?.map((submenu, idx) => (
               <TreeItem key={idx} itemId={submenu.id} label={submenu.title} />
-            ))}
+            ))} */}
           </TreeItem>
         ))}
       </SimpleTreeView>
     </Box>
   );
-  // console.log('assets table________', categories);
+  console.log('assets table________', categories);
   return (
     <Box
       sx={{
@@ -195,7 +196,10 @@ const AssetsNavigation = () => {
         </Paper>
       </Box>
 
-      <AddAssetDialog open={open} onClose={() => setOpen(false)} />
+      <AddAssetDialog open={open} 
+      onClose={() => setOpen(false)} 
+      categories={categories && categories.length > 0 ? categories : []}
+      />
     </Box>
   );
 };

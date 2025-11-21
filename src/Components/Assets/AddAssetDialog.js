@@ -8,9 +8,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import * as actions from "../../stores/actions";
 import { useDispatch ,useSelector} from "react-redux";
 
-export default function AddAssetDialog({open, onClose, initialData}){
+export default function AddAssetDialog({open, onClose, initialData , categories}){
     const dispatch = useDispatch();
-    const categories = useSelector((state) => state.CategorySubcategory.categories);
+    
     const isEdit = Boolean(initialData && initialData.id);
     const [purchaseDate, setPurchaseDate] = useState(null);
     const [expiryDate, setExpiryDate] = useState(null);
@@ -34,9 +34,9 @@ export default function AddAssetDialog({open, onClose, initialData}){
       
   });
 
-  React.useEffect(() => {
-    dispatch(actions.viewCategories());
-  }, [open]);
+  // React.useEffect(() => {
+  //   dispatch(actions.viewCategories());
+  // }, [open]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
